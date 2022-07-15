@@ -8,7 +8,9 @@ import {ServiceEndpoint} from "did-resolver";
 import {useDropzone} from "react-dropzone";
 import {ActionButton} from "./ActionButton";
 import {StoredItems} from "./StoredItems";
-import {addToIPFS} from "../lib/ipfsUtils";
+import {useWallet} from "@solana/wallet-adapter-react";
+import {store} from "../lib/storageUtils";
+import {MessageSignerWalletAdapter} from "@solana/wallet-adapter-base";
 
 const baseStyle = {
     // flex: 1,
@@ -66,10 +68,10 @@ const img = {
 
 type EnhancedFile = File & { preview: string }
 export const StorageView:FC = () => {
+    const wallet = useWallet();
     const { did, addService } = useDID();
     const [ loading, setLoading ] = useState(false);
     const [ progress, setProgress ] = useState(0);
-    const [identifier, setIdentifier] = useState<string>();
     const [files, setFiles] = useState<EnhancedFile[]>([]);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -84,29 +86,23 @@ export const StorageView:FC = () => {
     } = useDropzone({onDrop})
 
     const triggerAddFile = useCallback(async () => {
-        console.log(
-            {
-                did,
-                identifier,
-                files
-            }
-        )
-        if (!did || !identifier || !files || files.length === 0) return;
+        if (!did || !files || files.length === 0) return;
 
         try {
             setLoading(true)
-            const cid = await addToIPFS(files[0], setProgress);
+            const cid = await store(files[0], did, wallet as unknown as MessageSignerWalletAdapter, setProgress);
+            const identifier = files[0].name.replaceAll(/[^a-zA-Z0-9]+/g,'');  // TODO sanitise better
             const service = {
                 id: `${did}#${identifier}`,
                 type: 'store',
                 serviceEndpoint: 'ipfs://' + cid,
-                description: '',
+                description: files[0].name,
             } as ServiceEndpoint;
             await addService(service);
         } finally {
             setLoading(false)
         }
-    }, [did, identifier, files])
+    }, [did, files, addService, wallet])
 
     const style = useMemo(() => ({
         ...baseStyle,
@@ -133,7 +129,7 @@ export const StorageView:FC = () => {
     ));
 
     // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
-    useEffect(() => () => files.forEach(file => URL.revokeObjectURL(file.preview)), []);
+    useEffect(() => () => files.forEach(file => URL.revokeObjectURL(file.preview)), [files]);
 
     return (
         <>
@@ -157,7 +153,6 @@ export const StorageView:FC = () => {
                         }
                     </div>
                     <Box>{thumbs}</Box>
-                    <Input placeholder="Identifier" onChange={(e) => setIdentifier(e.target.value)}/>
                     <ActionButton onClick={() => triggerAddFile()} text={'Add Service'} />
                     { loading && <Progress value={progress} />}
                 </VStack>

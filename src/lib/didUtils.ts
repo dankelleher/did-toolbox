@@ -1,4 +1,4 @@
-import {Connection, PublicKey, Transaction, TransactionInstruction} from "@solana/web3.js";
+import {Connection, PublicKey, TransactionInstruction} from "@solana/web3.js";
 import {
     createAddKeyInstruction,
     createAddServiceInstruction, createRemoveKeyInstruction,
