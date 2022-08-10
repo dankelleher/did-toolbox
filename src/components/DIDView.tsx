@@ -13,6 +13,7 @@ import {findPFP, isVerificationMethod} from "../lib/didUtils";
 import {ServiceEndpoint, VerificationMethod} from "did-resolver";
 import {AddService} from "../modal/AddService";
 import {ActionButton} from "./ActionButton";
+import {Service} from "@identity.com/sol-did-client";
 
 const jsonStyle = {
     backgroundColor: '#fafafa',
@@ -30,16 +31,16 @@ export const DIDView:FC = () => {
     const triggerDelete = ({existing_value}:InteractionProps) => {
         if (!did || !existing_value || !(typeof existing_value === 'object')) return;
 
-        const {id} = existing_value as VerificationMethod | ServiceEndpoint;
+        const entry = existing_value as VerificationMethod | Service;
 
-        if (isVerificationMethod(existing_value as VerificationMethod | ServiceEndpoint)) {
-            removeKey(id);
+        if (isVerificationMethod(entry)) {
+            removeKey(entry.id);
         } else {
-            removeService(id);
+            removeService(entry.fragment);
         }
     };
 
-    const triggerAddService = useCallback(async (service: ServiceEndpoint) => {
+    const triggerAddService = useCallback(async (service: Service) => {
         if (!did) return;
         await addService(service);
     }, [did])

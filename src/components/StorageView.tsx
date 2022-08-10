@@ -1,16 +1,16 @@
 import {
     Box,
-    Center, Progress, Input, useColorModeValue, VStack,
+    Center, Progress, useColorModeValue, VStack,
 } from '@chakra-ui/react';
 import {FC, useCallback, useEffect, useMemo, useState} from "react";
 import { useDID } from '../hooks/useDID';
-import {ServiceEndpoint} from "did-resolver";
 import {useDropzone} from "react-dropzone";
 import {ActionButton} from "./ActionButton";
 import {StoredItems} from "./StoredItems";
 import {useWallet} from "@solana/wallet-adapter-react";
 import {store} from "../lib/storageUtils";
 import {MessageSignerWalletAdapter} from "@solana/wallet-adapter-base";
+import {Service} from "@identity.com/sol-did-client";
 
 const baseStyle = {
     // flex: 1,
@@ -93,11 +93,11 @@ export const StorageView:FC = () => {
             const cid = await store(files[0], did, wallet as unknown as MessageSignerWalletAdapter, setProgress);
             const identifier = files[0].name.replaceAll(/[^a-zA-Z0-9]+/g,'');  // TODO sanitise better
             const service = {
-                id: `${did}#${identifier}`,
-                type: 'store',
+                fragment: identifier,
+                serviceType: 'store',
                 serviceEndpoint: 'ipfs://' + cid,
                 description: files[0].name,
-            } as ServiceEndpoint;
+            } as Service;
             await addService(service);
         } finally {
             setLoading(false)
