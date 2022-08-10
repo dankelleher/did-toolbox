@@ -1,24 +1,28 @@
-import {DIDDocument} from "@identity.com/sol-did-client";
 import {createContext, FC, ReactNode, useCallback, useContext, useEffect, useState} from "react";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
 import {
-    addServiceToDID, addVerificationMethodToDID,
-    keyToDid,
+    addServiceToDID, addVerificationMethodToDID, isMigratable, isInitialized,
+    keyToDid, migrate,
     removeServiceFromDID,
     removeVerificationMethodFromDID,
-    resolveDID
+    resolveDID, getDIDAccount, getDIDAddress
 } from "../lib/didUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {ServiceEndpoint} from "did-resolver";
+import {DIDDocument} from "did-resolver";
 import {PublicKey} from "@solana/web3.js";
+import {Service} from "@identity.com/sol-did-client";
 
 type DIDContextProps = {
     did: string;
     document: DIDDocument;
     addKey: (identifier: string, key: PublicKey) => Promise<void>;
-    removeKey: (identifier: string) => Promise<void>;
-    addService: (service: ServiceEndpoint) => Promise<void>;
-    removeService: (identifier: string) => Promise<void>;
+    removeKey: (fragment: string) => Promise<void>;
+    addService: (service: Service) => Promise<void>;
+    removeService: (fragment: string) => Promise<void>;
+    migrateDID: () => Promise<void>;
+    isDIDInitialized: () => Promise<boolean>;
+    isLegacyDID: boolean | undefined;    // true if the DID refers to a "legacy" (v1 did:sol method) DID and needs migrating
+    accountAddress: PublicKey | undefined;  // the address of the DID account if it is not a generative DID
 }
 
 const defaultDocument = {
@@ -33,8 +37,12 @@ const defaultDIDContextProps: DIDContextProps = {
     document: defaultDocument,
     addKey: async (identifier: string, key: PublicKey) => {},
     removeKey: async (identifier: string) => {},
-    addService: async (service: ServiceEndpoint) => {},
+    addService: async (service: Service) => {},
     removeService: async (identifier: string) => {},
+    migrateDID: async () => {},
+    isDIDInitialized: async () => false,
+    isLegacyDID: undefined,
+    accountAddress: undefined,
 }
 export const DIDContext = createContext<DIDContextProps>(defaultDIDContextProps)
 
@@ -43,10 +51,14 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
     const [did, setDid] = useState<string>("");
+    const [isLegacyDID, setIsLegacyDID] = useState<boolean>();
+    const [accountAddress, setAccountAddress] = useState<PublicKey>();
 
     const loadDID = useCallback(() => {
         if (did) {
             resolveDID(did).then(setDocument);
+            isMigratable(did).then(setIsLegacyDID)
+            getDIDAddress(did).then(setAccountAddress);
         }
     }, [did])
 
@@ -57,11 +69,9 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
         }
     }, [wallet, network]);
 
-    useEffect(() => {
-        loadDID();
-    }, [did]);
+    useEffect(loadDID, [did, loadDID]);
 
-    const addService = (service: ServiceEndpoint) => {
+    const addService = (service: Service) => {
         return addServiceToDID(did, wallet, service, connection).then(() => loadDID());
     }
 
@@ -77,6 +87,9 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
         return removeVerificationMethodFromDID(did, wallet, identifier, connection).then(() => loadDID());
     }
 
+    const migrateDID = () => migrate(did, wallet)
+    const isDIDInitialized = () => isInitialized(did);
+
     return (
         <DIDContext.Provider value={{
             did,
@@ -85,6 +98,10 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
             removeKey,
             addService,
             removeService,
+            migrateDID,
+            isDIDInitialized,
+            isLegacyDID,
+            accountAddress,
         }}>{children}</DIDContext.Provider>
     )
 }
