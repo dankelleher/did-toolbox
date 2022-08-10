@@ -1,4 +1,3 @@
-import {DIDDocument} from "@identity.com/sol-did-client";
 import {createContext, FC, ReactNode, useCallback, useContext, useEffect, useState} from "react";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
 import {
@@ -9,16 +8,17 @@ import {
     resolveDID
 } from "../lib/didUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {ServiceEndpoint} from "did-resolver";
+import {DIDDocument} from "did-resolver";
 import {PublicKey} from "@solana/web3.js";
+import {Service} from "@identity.com/sol-did-client";
 
 type DIDContextProps = {
     did: string;
     document: DIDDocument;
     addKey: (identifier: string, key: PublicKey) => Promise<void>;
-    removeKey: (identifier: string) => Promise<void>;
-    addService: (service: ServiceEndpoint) => Promise<void>;
-    removeService: (identifier: string) => Promise<void>;
+    removeKey: (fragment: string) => Promise<void>;
+    addService: (service: Service) => Promise<void>;
+    removeService: (fragment: string) => Promise<void>;
 }
 
 const defaultDocument = {
@@ -33,7 +33,7 @@ const defaultDIDContextProps: DIDContextProps = {
     document: defaultDocument,
     addKey: async (identifier: string, key: PublicKey) => {},
     removeKey: async (identifier: string) => {},
-    addService: async (service: ServiceEndpoint) => {},
+    addService: async (service: Service) => {},
     removeService: async (identifier: string) => {},
 }
 export const DIDContext = createContext<DIDContextProps>(defaultDIDContextProps)
@@ -61,7 +61,7 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
         loadDID();
     }, [did]);
 
-    const addService = (service: ServiceEndpoint) => {
+    const addService = (service: Service) => {
         return addServiceToDID(did, wallet, service, connection).then(() => loadDID());
     }
 

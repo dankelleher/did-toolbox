@@ -10,8 +10,9 @@ import {
 import {FC, useMemo, useState} from "react";
 import {ServiceEndpoint} from "did-resolver";
 import {useDID} from "../hooks/useDID";
+import {Service} from "@identity.com/sol-did-client";
 
-type Props = { isOpen: boolean, onClose?: (service: ServiceEndpoint) => void };
+type Props = { isOpen: boolean, onClose?: (service: Service) => void };
 export const AddService:FC<Props> = ({ isOpen, onClose = () => {} }) => {
     const { did  } = useDID();
     const [serviceEndpoint, setServiceEndpoint] = useState<string>();
@@ -38,11 +39,11 @@ export const AddService:FC<Props> = ({ isOpen, onClose = () => {} }) => {
 
     const submit = () => {
         const service = {
-            id: `${did}#${identifier}`,
-            type,
+            fragment:identifier,
+            serviceType: type,
             serviceEndpoint,
             description,
-        } as ServiceEndpoint;
+        } as Service;
         onClose(service)
     }
 
