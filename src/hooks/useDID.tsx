@@ -5,7 +5,7 @@ import {
     keyToDid, migrate,
     removeServiceFromDID,
     removeVerificationMethodFromDID,
-    resolveDID, getDIDAccount, getDIDAddress
+    resolveDID, getDIDAddress
 } from "../lib/didUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument} from "did-resolver";

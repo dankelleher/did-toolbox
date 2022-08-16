@@ -12,7 +12,7 @@ import {
 import {WalletContextState} from "@solana/wallet-adapter-react/src/useWallet";
 import {sendTransaction} from "./solanaUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {DIDDocument, VerificationMethod} from "did-resolver";
+import {DIDDocument, ServiceEndpoint, VerificationMethod} from "did-resolver";
 import {background} from "@chakra-ui/react";
 
 const toWallet = (walletContextState: WalletContextState):Wallet => {
@@ -50,7 +50,7 @@ export const keyToDid = (key: PublicKey, network: WalletAdapterNetwork): string 
 }
 export const findPFP = (document: DIDDocument): string | undefined => document.service?.find(s => s.type === 'PFP')?.serviceEndpoint
 
-export const isVerificationMethod = (entry: VerificationMethod | Service): entry is VerificationMethod => entry.hasOwnProperty('controller');
+export const isVerificationMethod = (entry: VerificationMethod | ServiceEndpoint): entry is VerificationMethod => entry.hasOwnProperty('controller');
 
 export const resolveDID = (did: string): Promise<DIDDocument> => getServiceFromDID(did).then(service => service.resolve())
 

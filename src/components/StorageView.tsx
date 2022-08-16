@@ -90,12 +90,12 @@ export const StorageView:FC = () => {
 
         try {
             setLoading(true)
-            const cid = await store(files[0], did, wallet as unknown as MessageSignerWalletAdapter, setProgress);
+            const uri = await store(files[0], did, wallet as unknown as MessageSignerWalletAdapter, setProgress);
             const identifier = files[0].name.replaceAll(/[^a-zA-Z0-9]+/g,'');  // TODO sanitise better
             const service = {
                 fragment: identifier,
                 serviceType: 'store',
-                serviceEndpoint: 'ipfs://' + cid,
+                serviceEndpoint: uri,
                 description: files[0].name,
             } as Service;
             await addService(service);

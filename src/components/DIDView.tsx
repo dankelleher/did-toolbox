@@ -1,5 +1,4 @@
 import {
-    Button,
     Center,
     Flex,
     Image,
@@ -10,7 +9,7 @@ import {FC, useCallback, useMemo, useState} from "react";
 import { useDID } from '../hooks/useDID';
 import ReactJson, {InteractionProps} from "react-json-view";
 import {findPFP, isVerificationMethod} from "../lib/didUtils";
-import {VerificationMethod} from "did-resolver";
+import {VerificationMethod, ServiceEndpoint} from "did-resolver";
 import {AddService} from "../modal/AddService";
 import {ActionButton} from "./ActionButton";
 import {Service} from "@identity.com/sol-did-client";
@@ -31,12 +30,12 @@ export const DIDView:FC = () => {
     const triggerDelete = ({existing_value}:InteractionProps) => {
         if (!did || !existing_value || !(typeof existing_value === 'object')) return;
 
-        const entry = existing_value as VerificationMethod | Service;
+        const entry = existing_value as VerificationMethod | ServiceEndpoint;
 
         if (isVerificationMethod(entry)) {
             removeKey(entry.id);
         } else {
-            removeService(entry.fragment);
+            removeService(entry.id);
         }
     };
 
