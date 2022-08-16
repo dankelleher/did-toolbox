@@ -13,11 +13,11 @@ import {
     MenuDivider,
     MenuItem,
     MenuList,
-    Stack,
+    Stack, Tooltip,
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import {CloseIcon, HamburgerIcon} from '@chakra-ui/icons';
+import {CloseIcon, HamburgerIcon, TriangleUpIcon} from '@chakra-ui/icons';
 import {ColorModeSwitcher} from "../ColorModeSwitcher";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {WalletMultiButton} from '@solana/wallet-adapter-react-ui';
@@ -45,12 +45,13 @@ const NavLink = ({ children, select }: { children: ReactNode, select: () => void
 
 type Props = {
     setNetwork: (network : WalletAdapterNetwork) => void
+    network: WalletAdapterNetwork
     setPage: (page : SelectedPage) => void
 }
 
-export const Navbar:FC<Props> = ({ setNetwork, setPage }) => {
+export const Navbar:FC<Props> = ({ setNetwork, setPage, network }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { did, document } = useDID();
+    const { did, document, migrateDID, isLegacyDID, accountAddress } = useDID();
 
     const pfp = useMemo(() => {
         if (!did) return "";
@@ -79,8 +80,17 @@ export const Navbar:FC<Props> = ({ setNetwork, setPage }) => {
                         </HStack>
                     </HStack>
                     <Flex alignItems={'center'}>
+                        { isLegacyDID &&
+                            <Tooltip label='Upgrade DID'>
+                                <IconButton
+                                    size={'md'}
+                                    icon={<TriangleUpIcon/>}
+                                    aria-label={'Migrate'}
+                                    onClick={migrateDID}
+                                />
+                            </Tooltip> }
                         <ColorModeSwitcher justifySelf="flex-end" />
-                        <NetworkDropdown network={WalletAdapterNetwork.Devnet} setNetwork={setNetwork}/>
+                        <NetworkDropdown network={network} setNetwork={setNetwork}/>
                         <WalletMultiButton />
                         <Menu>
                             <MenuButton
@@ -98,7 +108,11 @@ export const Navbar:FC<Props> = ({ setNetwork, setPage }) => {
                                 <MenuItem onClick={() => setPage('DID')}>DID</MenuItem>
                                 <MenuItem onClick={() => setPage('Storage')}>Storage</MenuItem>
                                 <MenuDivider />
-                                <MenuItem>Link 3</MenuItem>
+                                <MenuItem>
+                                    <a href={`https://explorer.identity.com/address/${accountAddress}?cluster=${network}`} target="_blank">
+                                        Explorer
+                                    </a>
+                                </MenuItem>
                             </MenuList>
                         </Menu>
                     </Flex>

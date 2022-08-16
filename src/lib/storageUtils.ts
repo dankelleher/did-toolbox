@@ -1,9 +1,9 @@
 import {decrypt, encrypt, UnencryptedPayload} from "./cryptoUtils";
 import {MessageSignerWalletAdapter} from "@solana/wallet-adapter-base";
-import {addToIPFS} from "./ipfsUtils";
+import {AlephStorage} from "./alephUtils";
+import {Web3Storage} from "./types";
 
-export const cidPathToUrl = (cidPath: string) => cidToUrl(cidPath.replace(/^ipfs:\/\//, ''));
-const cidToUrl = (cid: string) => `https://ipfs.infura.io/ipfs/${cid}`;
+const storage:Web3Storage = new AlephStorage();
 
 export const store = async (file: File, did: string, wallet: MessageSignerWalletAdapter, progressCallback: (percent: number) => void) => {
     // TODO this is crazy inefficient - turning the file to a base64 string, encrypting it, then encoding the result as base64 again
@@ -15,12 +15,11 @@ export const store = async (file: File, did: string, wallet: MessageSignerWallet
         mimeType: file.type,
     }
     const payload = await encrypt(unencryptedPayload, did, wallet);
-    return addToIPFS(JSON.stringify(payload), file.name, progressCallback);
+    return storage.add(JSON.stringify(payload), file.name, did, wallet, progressCallback);
 }
 
-export const retrieve = async (cid: string, did: string, wallet: MessageSignerWalletAdapter): Promise<UnencryptedPayload> => {
-    const url = cidPathToUrl(cid);
-    const encryptedContent = await fetch(url).then(res => res.text()).then(JSON.parse);
+export const retrieve = async (hash: string, did: string, wallet: MessageSignerWalletAdapter): Promise<UnencryptedPayload> => {
+    const encryptedContent = await storage.retrieve(hash).then(JSON.parse);
     return decrypt(encryptedContent, did, wallet);
 }
 

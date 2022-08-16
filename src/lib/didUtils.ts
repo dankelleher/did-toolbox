@@ -1,5 +1,6 @@
 import {Connection, PublicKey, Transaction, TransactionInstruction} from "@solana/web3.js";
 import {
+    DidDataAccount,
     DidSolIdentifier,
     DidSolService,
     ExtendedCluster,
@@ -11,7 +12,8 @@ import {
 import {WalletContextState} from "@solana/wallet-adapter-react/src/useWallet";
 import {sendTransaction} from "./solanaUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {DIDDocument, VerificationMethod} from "did-resolver";
+import {DIDDocument, ServiceEndpoint, VerificationMethod} from "did-resolver";
+import {background} from "@chakra-ui/react";
 
 const toWallet = (walletContextState: WalletContextState):Wallet => {
     if (!walletContextState.publicKey || !walletContextState.signTransaction || !walletContextState.signAllTransactions) {
@@ -48,7 +50,7 @@ export const keyToDid = (key: PublicKey, network: WalletAdapterNetwork): string 
 }
 export const findPFP = (document: DIDDocument): string | undefined => document.service?.find(s => s.type === 'PFP')?.serviceEndpoint
 
-export const isVerificationMethod = (entry: VerificationMethod | Service): entry is VerificationMethod => entry.hasOwnProperty('controller');
+export const isVerificationMethod = (entry: VerificationMethod | ServiceEndpoint): entry is VerificationMethod => entry.hasOwnProperty('controller');
 
 export const resolveDID = (did: string): Promise<DIDDocument> => getServiceFromDID(did).then(service => service.resolve())
 
@@ -68,7 +70,14 @@ export const addServiceToDID = async (did: string, wallet: WalletContextState, s
 
     const didSolService = await getServiceFromDID(did, wallet);
 
-    await didSolService.addService(service).rpc();
+    const isDIDInitialized = await isInitialized(did);
+
+    console.log("Is initialized", isDIDInitialized)
+
+    // TODO combine into one tx
+    if (!isDIDInitialized) await didSolService.initialize().rpc()
+
+    await didSolService.addService(service).withAutomaticAlloc(wallet.publicKey).rpc();
 }
 export const removeServiceFromDID = async (did: string, wallet: WalletContextState, identifier: string, connection: Connection): Promise<void> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
@@ -90,7 +99,7 @@ export const addVerificationMethodToDID = async (did: string, wallet: WalletCont
         {
             flags: VerificationMethodFlags.None, fragment, keyData: key.toBytes(), methodType: VerificationMethodType.Ed25519VerificationKey2018
         }
-    ).rpc();
+    ).withAutomaticAlloc(wallet.publicKey).rpc();
 }
 export const removeVerificationMethodFromDID = async (did: string, wallet: WalletContextState, identifier: string, connection: Connection): Promise<void> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
@@ -102,3 +111,37 @@ export const removeVerificationMethodFromDID = async (did: string, wallet: Walle
 
     await didSolService.removeVerificationMethod(fragment).rpc();
 }
+
+export const isMigratable = async (did: string): Promise<boolean> => {
+    const didSolService = await getServiceFromDID(did);
+    return didSolService.isMigratable();
+}
+
+export const migrate = async (did: string, wallet: WalletContextState) : Promise<void> => {
+    console.log({
+        did,
+        wallet
+    })
+    if (!wallet.publicKey) throw new Error('Wallet is not connected');
+
+    const didSolService = await getServiceFromDID(did, wallet);
+
+    const isMigratable = await didSolService.isMigratable();
+    if (!isMigratable) throw new Error('DID is not migratable');
+
+    await didSolService.migrate().rpc();
+}
+
+export const getDIDAccount = async (did: string) : Promise<DidDataAccount | null> => {
+    const didSolService = await getServiceFromDID(did);
+    return didSolService.getDidAccount();
+}
+
+export const getDIDAddress = async (did:string): Promise<PublicKey | undefined> => {
+    if (!await isInitialized(did)) return undefined;
+
+    const didSolService = await getServiceFromDID(did);
+    return didSolService.didDataAccount;
+}
+
+export const isInitialized = (did: string): Promise<boolean> => getDIDAccount(did).then(account => !!account);
