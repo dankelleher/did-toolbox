@@ -1,4 +1,5 @@
 import {
+    Box,
     Center,
     Flex,
     Image,
@@ -9,18 +10,20 @@ import {FC, useCallback, useMemo, useState} from "react";
 import { useDID } from '../hooks/useDID';
 import ReactJson, {InteractionProps} from "react-json-view";
 import {findPFP, isVerificationMethod} from "../lib/didUtils";
-import {VerificationMethod, ServiceEndpoint} from "did-resolver";
+import {VerificationMethod as DIDVerificationMethod, ServiceEndpoint} from "did-resolver";
 import {AddService} from "../modal/AddService";
 import {ActionButton} from "./ActionButton";
-import {Service} from "@identity.com/sol-did-client";
+import {Service, VerificationMethod} from "@identity.com/sol-did-client";
+import {AddKey} from "../modal/AddKey";
 
 const jsonStyle = {
     backgroundColor: '#fafafa',
 }
 
 export const DIDView:FC = () => {
-    const { did, document, addService, removeService, removeKey } = useDID();
+    const { did, document, addService, removeService, addKey, removeKey } = useDID();
     const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
+    const [isAddKeyOpen, setIsAddKeyOpen] = useState(false);
 
     const pfp = useMemo(() => {
         if (!did) return "";
@@ -30,7 +33,7 @@ export const DIDView:FC = () => {
     const triggerDelete = ({existing_value}:InteractionProps) => {
         if (!did || !existing_value || !(typeof existing_value === 'object')) return;
 
-        const entry = existing_value as VerificationMethod | ServiceEndpoint;
+        const entry = existing_value as DIDVerificationMethod | ServiceEndpoint;
 
         if (isVerificationMethod(entry)) {
             removeKey(entry.id);
@@ -44,6 +47,11 @@ export const DIDView:FC = () => {
         await addService(service);
     }, [did])
 
+    const triggerAddKey = useCallback(async (key: VerificationMethod) => {
+        if (!did) return;
+        await addKey(key);
+    }, [did])
+
     return (
         <Center py={6}>
             <Stack
@@ -55,15 +63,16 @@ export const DIDView:FC = () => {
                 bg={useColorModeValue('white', 'gray.900')}
                 boxShadow={'2xl'}
                 padding={4}>
-                <Flex flex={1} bg="blue.200">
-                    <Image
-                        objectFit="cover"
+                <Stack flex={1} bg="blue.200">
+                    {pfp ? <Image
+                        objectFit="scale-down"
                         boxSize="100%"
                         src={pfp}
-                    />
-                </Flex>
+                    /> : <Box>No PFP</Box>
+                    }
+                </Stack>
                 <Stack
-                    flex={1}
+                    flex={2}
                     flexDirection="column"
                     justifyContent="center"
                     alignItems="center"
@@ -72,11 +81,16 @@ export const DIDView:FC = () => {
                     pt={2}>
                     <ReactJson src={document} onDelete={triggerDelete} style={jsonStyle} />
                     <ActionButton onClick={() => setIsAddServiceOpen(true)} text={'Add Service'} />
+                    <ActionButton onClick={() => setIsAddKeyOpen(true)} text={'Add Key'} />
                 </Stack>
             </Stack>
             <AddService isOpen={isAddServiceOpen} onClose={(payload) => {
                 setIsAddServiceOpen(false);
                 triggerAddService(payload);
+            }} />
+            <AddKey isOpen={isAddKeyOpen} onClose={(payload) => {
+                setIsAddKeyOpen(false);
+                triggerAddKey(payload);
             }} />
         </Center>
     );

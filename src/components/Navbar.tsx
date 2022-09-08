@@ -17,7 +17,7 @@ import {
     useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
-import {CloseIcon, HamburgerIcon, TriangleUpIcon} from '@chakra-ui/icons';
+import {CloseIcon, HamburgerIcon, PlusSquareIcon, TriangleUpIcon} from '@chakra-ui/icons';
 import {ColorModeSwitcher} from "../ColorModeSwitcher";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {WalletMultiButton} from '@solana/wallet-adapter-react-ui';
@@ -25,8 +25,9 @@ import {useDID} from "../hooks/useDID";
 import {findPFP} from "../lib/didUtils";
 import {NetworkDropdown} from "./NetworkDropdown";
 import {SelectedPage} from "../lib/types";
+import {RegisteredDIDDropdown} from "./RegisteredDIDDropdown";
 
-const Links: SelectedPage[] = ['DID', 'Storage'];
+const Links: SelectedPage[] = ['DID', 'Storage', 'Keys'];
 
 const NavLink = ({ children, select }: { children: ReactNode, select: () => void }) => (
     <Link
@@ -51,12 +52,23 @@ type Props = {
 
 export const Navbar:FC<Props> = ({ setNetwork, setPage, network }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { did, document, migrateDID, isLegacyDID, accountAddress } = useDID();
+    const { did, document, migrateDID, isLegacyDID, accountAddress, linkedDIDs, registerDIDOnKey } = useDID();
+
+    const isLinked = useMemo(() => linkedDIDs.includes(did), [linkedDIDs, did]);
 
     const pfp = useMemo(() => {
         if (!did) return "";
         return findPFP(document) || ''
-    }, [document])
+    }, [did, document])
+
+    const setDID = (did: string) => {
+        window.location.href = `/${did}`;
+    }
+
+    const linkDID = () => {
+        // register the current DID on the connected wallet
+        registerDIDOnKey();
+    }
 
     return (
         <>
@@ -89,7 +101,17 @@ export const Navbar:FC<Props> = ({ setNetwork, setPage, network }) => {
                                     onClick={migrateDID}
                                 />
                             </Tooltip> }
+                        { !isLinked &&
+                            <Tooltip label='Register DID'>
+                                <IconButton
+                                    size={'md'}
+                                    icon={<PlusSquareIcon/>}
+                                    aria-label={'Register DID'}
+                                    onClick={linkDID}
+                                />
+                            </Tooltip> }
                         <ColorModeSwitcher justifySelf="flex-end" />
+                        <RegisteredDIDDropdown selectedDID={did} dids={linkedDIDs} setDID={setDID}/>
                         <NetworkDropdown network={network} setNetwork={setNetwork}/>
                         <WalletMultiButton />
                         <Menu>

@@ -5,18 +5,22 @@ import {
     keyToDid, migrate,
     removeServiceFromDID,
     removeVerificationMethodFromDID,
-    resolveDID, getDIDAddress
+    resolveDID, getDIDAddress, listRegisteredDIDs, getVerificationMethodFlags, registerDID, setOwned
 } from "../lib/didUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument} from "did-resolver";
 import {PublicKey} from "@solana/web3.js";
-import {Service} from "@identity.com/sol-did-client";
+import {Service, VerificationMethod, VerificationMethodFlags} from "@identity.com/sol-did-client";
 
 type DIDContextProps = {
     did: string;
     document: DIDDocument;
-    addKey: (identifier: string, key: PublicKey) => Promise<void>;
+    linkedDIDs: string[];
+    registerDIDOnKey: () => Promise<void>;
+    addKey: (key: VerificationMethod) => Promise<void>;
     removeKey: (fragment: string) => Promise<void>;
+    getKeyFlags: (fragment: string) => Promise<VerificationMethodFlags | undefined>;
+    setKeyOwned: () => Promise<void>;
     addService: (service: Service) => Promise<void>;
     removeService: (fragment: string) => Promise<void>;
     migrateDID: () => Promise<void>;
@@ -35,10 +39,14 @@ const defaultDocument = {
 const defaultDIDContextProps: DIDContextProps = {
     did: "",
     document: defaultDocument,
-    addKey: async (identifier: string, key: PublicKey) => {},
-    removeKey: async (identifier: string) => {},
+    linkedDIDs: [],
+    registerDIDOnKey: async () => {},
+    addKey: async (key: VerificationMethod) => {},
+    removeKey: async (fragment: string) => {},
+    getKeyFlags: async (fragment: string) => undefined,
+    setKeyOwned: async () => {},
     addService: async (service: Service) => {},
-    removeService: async (identifier: string) => {},
+    removeService: async (fragment: string) => {},
     migrateDID: async () => {},
     isDIDInitialized: async () => false,
     isLegacyDID: undefined,
@@ -50,7 +58,8 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     const wallet = useWallet();
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
-    const [did, setDid] = useState<string>("");
+    const [did, setDIO] = useState<string>("");
+    const [linkedDIDs, setLinkedDIDs] = useState<string[]>([]);
     const [isLegacyDID, setIsLegacyDID] = useState<boolean>();
     const [accountAddress, setAccountAddress] = useState<PublicKey>();
 
@@ -59,43 +68,58 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
             resolveDID(did).then(setDocument);
             isMigratable(did).then(setIsLegacyDID)
             getDIDAddress(did).then(setAccountAddress);
+
+            if (wallet && wallet.publicKey) {
+                listRegisteredDIDs(wallet, connection).then(linkedDIDs => {
+                    // TODO this is a hack - clean up
+                    const didsOnNetwork = linkedDIDs.map(did => did.replace("did:sol:", `did:sol:devnet:`));
+                    setLinkedDIDs(didsOnNetwork);
+                });
+            }
         }
-    }, [did])
+    }, [did, wallet])
 
     useEffect(() => {
-        if (wallet && wallet.publicKey) {
+        if (wallet && wallet.publicKey && !did) {
             const did = keyToDid(wallet.publicKey, network);
-            setDid(did);
+            setDIO(did);
         }
     }, [wallet, network]);
 
+    useEffect(() => {
+        const location = window.location.href.match(/\/(did:sol:.*)#?$/);
+        if (location) setDIO(location[1]);
+    }, [window.location.href])
+
     useEffect(loadDID, [did, loadDID]);
 
-    const addService = (service: Service) => {
-        return addServiceToDID(did, wallet, service, connection).then(() => loadDID());
-    }
+    const getKeyFlags = (fragment: string) => getVerificationMethodFlags(did, wallet, fragment)
 
-    const removeService = (identifier: string) => {
-        return removeServiceFromDID(did, wallet, identifier, connection).then(() => loadDID());
-    }
+    const addService = (service: Service) => addServiceToDID(did, wallet, service).then(() => loadDID())
 
-    const addKey = (identifier: string, key: PublicKey) => {
-        return addVerificationMethodToDID(did, wallet, identifier, key, connection).then(() => loadDID());
-    }
+    const removeService = (fragment: string) => removeServiceFromDID(did, wallet, fragment).then(() => loadDID())
 
-    const removeKey = (identifier: string) => {
-        return removeVerificationMethodFromDID(did, wallet, identifier, connection).then(() => loadDID());
-    }
+    const addKey = (key: VerificationMethod) => addVerificationMethodToDID(did, wallet, key).then(() => loadDID())
+
+    const removeKey = (fragment: string) => removeVerificationMethodFromDID(did, wallet, fragment).then(() => loadDID())
 
     const migrateDID = () => migrate(did, wallet)
     const isDIDInitialized = () => isInitialized(did);
+
+    const registerDIDOnKey = () => registerDID(wallet, connection, did).then(() => listRegisteredDIDs(wallet, connection).then(setLinkedDIDs))
+
+    const setKeyOwned = () => setOwned(did, wallet).then(loadDID)
 
     return (
         <DIDContext.Provider value={{
             did,
             document: document ?? defaultDocument,
+            linkedDIDs,
+            registerDIDOnKey,
             addKey,
             removeKey,
+            getKeyFlags,
+            setKeyOwned,
             addService,
             removeService,
             migrateDID,

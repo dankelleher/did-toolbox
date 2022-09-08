@@ -6,6 +6,7 @@
     "@chakra-ui/icons": "^2.0.2",
     "@chakra-ui/react": "^2.2.1",
     "@civic/aleph-sdk-ts": "^1.0.1-beta2",
+    "@civic/did-registry": "^0.0.2",
     "@civic/lexi": "^0.0.9",
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",

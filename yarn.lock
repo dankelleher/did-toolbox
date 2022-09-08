@@ -1717,6 +1717,14 @@
     tweetnacl "^1.0.3"
     uuid "^8.3.2"
 
+"@civic/did-registry@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.2.tgz#eb66ae1db488af7db077d8064be30e982b36d63d"
+  integrity sha512-/5nkLCTqECn6NYyZKv+8SThKg9VREvL5jNc6tULvf1aehaX2LKOF3zIIC/iT/o8JAD2CY4Q32w7eqBDPC/AeoA==
+  dependencies:
+    "@identity.com/sol-did-client" "^3.0.1-beta1"
+    "@project-serum/anchor" "^0.25.0"
+
 "@civic/lexi@^0.0.9":
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/@civic/lexi/-/lexi-0.0.9.tgz#f257e2d71d756e90bc73b121cdfcf9929a4da0c2"
@@ -3068,7 +3076,7 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.5.tgz#db5a11bf66bdab39569719555b0f76e138d7bd64"
   integrity sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==
 
-"@project-serum/anchor@0.25.0":
+"@project-serum/anchor@0.25.0", "@project-serum/anchor@^0.25.0":
   version "0.25.0"
   resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.25.0.tgz#88ee4843336005cf5a64c80636ce626f0996f503"
   integrity sha512-E6A5Y/ijqpfMJ5psJvbw0kVTzLZFUcOFgs6eSM2M2iWE1lVRF18T6hWZVNl6zqZsoz98jgnNHtVGJMs+ds9A7A==

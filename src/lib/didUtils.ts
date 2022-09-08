@@ -5,15 +5,27 @@ import {
     DidSolService,
     ExtendedCluster,
     Service,
+    VerificationMethod,
     VerificationMethodFlags,
-    VerificationMethodType,
     Wallet
 } from "@identity.com/sol-did-client";
 import {WalletContextState} from "@solana/wallet-adapter-react/src/useWallet";
 import {sendTransaction} from "./solanaUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {DIDDocument, ServiceEndpoint, VerificationMethod} from "did-resolver";
-import {background} from "@chakra-ui/react";
+import {DIDDocument, ServiceEndpoint, VerificationMethod as DIDVerificationMethod} from "did-resolver";
+import {Registry} from '@civic/did-registry'
+
+export const listRegisteredDIDs = (wallet: WalletContextState, connection: Connection): Promise<string[]> => {
+    const registry = new Registry(toWallet(wallet), connection);
+
+    return registry.listDIDs();
+}
+
+export const registerDID = (wallet: WalletContextState, connection: Connection, did: string): Promise<string> => {
+    const registry = new Registry(toWallet(wallet), connection);
+
+    return registry.register(did);
+}
 
 const toWallet = (walletContextState: WalletContextState):Wallet => {
     if (!walletContextState.publicKey || !walletContextState.signTransaction || !walletContextState.signAllTransactions) {
@@ -50,7 +62,7 @@ export const keyToDid = (key: PublicKey, network: WalletAdapterNetwork): string 
 }
 export const findPFP = (document: DIDDocument): string | undefined => document.service?.find(s => s.type === 'PFP')?.serviceEndpoint
 
-export const isVerificationMethod = (entry: VerificationMethod | ServiceEndpoint): entry is VerificationMethod => entry.hasOwnProperty('controller');
+export const isVerificationMethod = (entry: DIDVerificationMethod | ServiceEndpoint): entry is DIDVerificationMethod => entry.hasOwnProperty('controller');
 
 export const resolveDID = (did: string): Promise<DIDDocument> => getServiceFromDID(did).then(service => service.resolve())
 
@@ -65,21 +77,14 @@ const sendInstruction = async (instruction: TransactionInstruction, wallet: Wall
     return signature;
 }
 
-export const addServiceToDID = async (did: string, wallet: WalletContextState, service: Service, connection: Connection): Promise<void> => {
+export const addServiceToDID = async (did: string, wallet: WalletContextState, service: Service): Promise<void> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
 
     const didSolService = await getServiceFromDID(did, wallet);
 
-    const isDIDInitialized = await isInitialized(did);
-
-    console.log("Is initialized", isDIDInitialized)
-
-    // TODO combine into one tx
-    if (!isDIDInitialized) await didSolService.initialize().rpc()
-
     await didSolService.addService(service).withAutomaticAlloc(wallet.publicKey).rpc();
 }
-export const removeServiceFromDID = async (did: string, wallet: WalletContextState, identifier: string, connection: Connection): Promise<void> => {
+export const removeServiceFromDID = async (did: string, wallet: WalletContextState, identifier: string): Promise<void> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
 
     const didSolService = await getServiceFromDID(did, wallet);
@@ -90,18 +95,32 @@ export const removeServiceFromDID = async (did: string, wallet: WalletContextSta
     await didSolService.removeService(fragment).rpc();
 }
 
-export const addVerificationMethodToDID = async (did: string, wallet: WalletContextState, fragment: string, key: PublicKey, connection: Connection): Promise<void> => {
+export const getVerificationMethodFlags = async (did: string, wallet: WalletContextState, fragment: string): Promise<VerificationMethodFlags | undefined> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
 
     const didSolService = await getServiceFromDID(did, wallet);
 
-    await didSolService.addVerificationMethod(
-        {
-            flags: VerificationMethodFlags.None, fragment, keyData: key.toBytes(), methodType: VerificationMethodType.Ed25519VerificationKey2018
-        }
-    ).withAutomaticAlloc(wallet.publicKey).rpc();
+    const account = await didSolService.getDidAccount();
+
+    if (!account) return undefined;
+
+    const verificationMethods = [
+        account.initialVerificationMethod,
+        ...account.verificationMethods,
+    ]
+
+    return verificationMethods.find(vm => vm.fragment === fragment)?.flags;
 }
-export const removeVerificationMethodFromDID = async (did: string, wallet: WalletContextState, identifier: string, connection: Connection): Promise<void> => {
+
+export const addVerificationMethodToDID = async (did: string, wallet: WalletContextState, key: VerificationMethod): Promise<void> => {
+    if (!wallet.publicKey) throw new Error('Wallet is not connected');
+
+    const didSolService = await getServiceFromDID(did, wallet);
+
+    await didSolService.addVerificationMethod(key).withAutomaticAlloc(wallet.publicKey).rpc();
+}
+
+export const removeVerificationMethodFromDID = async (did: string, wallet: WalletContextState, identifier: string): Promise<void> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
 
     const fragment = identifier.match(/^did:sol:.*#(.*)$/)?.[1];
@@ -112,8 +131,29 @@ export const removeVerificationMethodFromDID = async (did: string, wallet: Walle
     await didSolService.removeVerificationMethod(fragment).rpc();
 }
 
+export const setOwned = async (did: string, wallet: WalletContextState): Promise<void> => {
+    if (!wallet.publicKey) throw new Error('Wallet is not connected');
+
+    const didSolService = await getServiceFromDID(did, wallet);
+    const document = await didSolService.resolve();
+
+    // TODO or get the didAccount and iterate over the verification methods
+    const fragment = document
+        .verificationMethod
+        ?.find(
+            vm => vm.publicKeyBase58 === wallet.publicKey?.toBase58()
+        )
+        ?.id
+        .match(/^did:sol:.*#(.*)$/)
+        ?.[1];
+
+    if (!fragment) throw new Error('No verification method found');
+    await didSolService.setVerificationMethodFlags(fragment, VerificationMethodFlags.OwnershipProof, wallet.publicKey).rpc();
+}
+
 export const isMigratable = async (did: string): Promise<boolean> => {
     const didSolService = await getServiceFromDID(did);
+
     return didSolService.isMigratable();
 }
 

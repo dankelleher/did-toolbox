@@ -11,10 +11,7 @@ import {WalletModalProvider} from "@solana/wallet-adapter-react-ui";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {createDefaultAuthorizationResultCache, SolanaMobileWalletAdapter} from "@solana-mobile/wallet-adapter-mobile";
 
-export const SolanaWalletProvider: FC<{ children: ReactNode, network: WalletAdapterNetwork }> = ({ children }) => {
-    // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-    const network = WalletAdapterNetwork.Devnet;
-
+export const SolanaWalletProvider: FC<{ children: ReactNode, network: WalletAdapterNetwork }> = ({ children, network }) => {
     // You can also provide a custom RPC endpoint.
     const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 

@@ -8,13 +8,10 @@ import {
     ModalCloseButton, Button, Input, Select,
 } from '@chakra-ui/react'
 import {FC, useMemo, useState} from "react";
-import {ServiceEndpoint} from "did-resolver";
-import {useDID} from "../hooks/useDID";
 import {Service} from "@identity.com/sol-did-client";
 
 type Props = { isOpen: boolean, onClose?: (service: Service) => void };
 export const AddService:FC<Props> = ({ isOpen, onClose = () => {} }) => {
-    const { did  } = useDID();
     const [serviceEndpoint, setServiceEndpoint] = useState<string>();
     const [type, setType] = useState<string>();
     const [identifier, setIdentifier] = useState<string>();
