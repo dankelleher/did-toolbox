@@ -1,5 +1,5 @@
 import {useDID} from "../hooks/useDID";
-import {FC, useCallback, useMemo, useState} from "react";
+import {FC, useCallback, useMemo} from "react";
 import {StoredItem} from "./StoredItem";
 import {Center} from "@chakra-ui/react";
 import {useWallet} from "@solana/wallet-adapter-react";

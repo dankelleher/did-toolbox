@@ -10,11 +10,14 @@ import {
 } from '@chakra-ui/react'
 import * as React from "react";
 import {FC, useCallback, useMemo, useState} from "react";
-import {VerificationMethod, VerificationMethodType} from "@identity.com/sol-did-client";
-import {VerificationMethodFlags} from "@identity.com/sol-did-client/dist/src/lib/types";
+import {
+    AddVerificationMethodParams,
+    BitwiseVerificationMethodFlag,
+    VerificationMethodType
+} from "@identity.com/sol-did-client";
 import {PublicKey} from "@solana/web3.js";
 
-type Props = { isOpen: boolean, onClose?: (key: VerificationMethod) => void };
+type Props = { isOpen: boolean, onClose?: (key: AddVerificationMethodParams) => void };
 export const AddKey:FC<Props> = ({ isOpen, onClose = () => {} }) => {
     const [identifier, setIdentifier] = useState<string>();
     const [key, setKey] = useState<string>();
@@ -46,7 +49,7 @@ export const AddKey:FC<Props> = ({ isOpen, onClose = () => {} }) => {
             fragment: identifier,
             methodType: VerificationMethodType.Ed25519VerificationKey2018,
             keyData: new PublicKey(key).toBytes(),
-            flags: VerificationMethodFlags.CapabilityInvocation
+            flags: [BitwiseVerificationMethodFlag.CapabilityInvocation]
         }
 
         onClose(verificationMethod);

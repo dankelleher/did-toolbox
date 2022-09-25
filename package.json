@@ -10,7 +10,7 @@
     "@civic/lexi": "^0.0.9",
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
-    "@identity.com/sol-did-client": "^3.0.1-beta1",
+    "@identity.com/sol-did-client": "^3.1.2",
     "@solana-mobile/wallet-adapter-mobile": "^0.0.1-alpha.0",
     "@solana/wallet-adapter-base": "^0.9.7",
     "@solana/wallet-adapter-react": "^0.15.6",

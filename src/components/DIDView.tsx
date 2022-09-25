@@ -1,7 +1,6 @@
 import {
     Box,
     Center,
-    Flex,
     Image,
     Stack,
     useColorModeValue,
@@ -13,7 +12,7 @@ import {findPFP, isVerificationMethod} from "../lib/didUtils";
 import {VerificationMethod as DIDVerificationMethod, ServiceEndpoint} from "did-resolver";
 import {AddService} from "../modal/AddService";
 import {ActionButton} from "./ActionButton";
-import {Service, VerificationMethod} from "@identity.com/sol-did-client";
+import {AddVerificationMethodParams, Service} from "@identity.com/sol-did-client";
 import {AddKey} from "../modal/AddKey";
 
 const jsonStyle = {
@@ -47,7 +46,7 @@ export const DIDView:FC = () => {
         await addService(service);
     }, [did])
 
-    const triggerAddKey = useCallback(async (key: VerificationMethod) => {
+    const triggerAddKey = useCallback(async (key: AddVerificationMethodParams) => {
         if (!did) return;
         await addKey(key);
     }, [did])

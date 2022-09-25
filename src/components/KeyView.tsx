@@ -3,7 +3,7 @@ import {FC, useCallback, useEffect, useState} from "react";
 import {useDID} from '../hooks/useDID';
 import {PublicKey} from "@solana/web3.js";
 import {VerificationMethod} from "did-resolver";
-import {VerificationMethodFlags} from "@identity.com/sol-did-client";
+import {BitwiseVerificationMethodFlag} from "@identity.com/sol-did-client";
 
 const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMethod }) => {
     const { did, getKeyFlags, linkedDIDs, registerDIDOnKey, setKeyOwned } = useDID();
@@ -14,10 +14,7 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
     useEffect(() => {
         const setOwnershipFlag = async () => {
             const flags = await getKeyFlags(fragment);
-            console.log(flags);
-            console.log(VerificationMethodFlags.OwnershipProof);
-            console.log(flags && ((flags as number) & (VerificationMethodFlags.OwnershipProof as number)))
-            if (flags && ((flags as number) & (VerificationMethodFlags.OwnershipProof as number))) {
+            if (flags && flags.has(BitwiseVerificationMethodFlag.OwnershipProof)) {
                 console.log("setting isOwned to true");
                 // the type of this is messed up at the moment, it is mapped to an enum
                 // TODO change this when the sol-did-client is fixed
