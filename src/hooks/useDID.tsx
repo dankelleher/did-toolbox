@@ -13,7 +13,6 @@ import {PublicKey} from "@solana/web3.js";
 import {
     AddVerificationMethodParams,
     Service,
-    VerificationMethod,
     VerificationMethodFlags
 } from "@identity.com/sol-did-client";
 
@@ -69,8 +68,10 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     const [accountAddress, setAccountAddress] = useState<PublicKey>();
 
     const loadDID = useCallback(() => {
+        console.log("Loading DID", did);
+        console.log("network is", network);
         if (did) {
-            resolveDID(did, connection).then(setDocument);
+            resolveDID(did, connection).then(setDocument).catch(console.error);
             isMigratable(did, connection).then(setIsLegacyDID)
             getDIDAddress(did, connection).then(setAccountAddress);
 
@@ -82,10 +83,13 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
                 });
             }
         }
-    }, [did, wallet])
+    }, [did, wallet, network])
 
     useEffect(() => {
-        if (wallet && wallet.publicKey && !did) {
+        const location = window.location.href.match(/\/(did:sol:.*)#?$/);
+        if (location) {
+            setDIO(location[1]);
+        } else if (wallet && wallet.publicKey) {
             const did = keyToDid(wallet.publicKey, network);
             setDIO(did);
         }

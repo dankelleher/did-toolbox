@@ -78,7 +78,9 @@ export const DIDView:FC = () => {
                     overflowY="scroll"
                     p={1}
                     pt={2}>
-                    <ReactJson src={document} onDelete={triggerDelete} style={jsonStyle} />
+                    <Stack overflowY="scroll" height="100%" width="100%">
+                        <ReactJson src={document} onDelete={triggerDelete} style={jsonStyle} />
+                    </Stack>
                     <ActionButton onClick={() => setIsAddServiceOpen(true)} text={'Add Service'} />
                     <ActionButton onClick={() => setIsAddKeyOpen(true)} text={'Add Key'} />
                 </Stack>
