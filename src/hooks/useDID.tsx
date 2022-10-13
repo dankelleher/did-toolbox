@@ -78,7 +78,7 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
             if (wallet && wallet.publicKey) {
                 listRegisteredDIDs(wallet, connection).then(linkedDIDs => {
                     // TODO this is a hack - clean up
-                    const didsOnNetwork = linkedDIDs.map(did => did.replace("did:sol:", `did:sol:devnet:`));
+                    const didsOnNetwork = linkedDIDs.map(did => did.replace("did:sol:", `did:sol:${network}:`));
                     setLinkedDIDs(didsOnNetwork);
                 });
             }

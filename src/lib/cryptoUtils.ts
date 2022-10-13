@@ -1,5 +1,5 @@
 import {LexiWallet} from "@civic/lexi";
-import {MessageSignerWalletAdapter} from "@solana/wallet-adapter-base/src/signer";
+import {MessageSignerWalletAdapter} from "@solana/wallet-adapter-base";
 
 const generateSeed = () => window.crypto.getRandomValues(new Uint8Array(32));
 

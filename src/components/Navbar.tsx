@@ -27,7 +27,7 @@ import {NetworkDropdown} from "./NetworkDropdown";
 import {SelectedPage} from "../lib/types";
 import {RegisteredDIDDropdown} from "./RegisteredDIDDropdown";
 
-const Links: SelectedPage[] = ['DID', 'Storage', 'Keys'];
+const Links: SelectedPage[] = ['DID', 'Storage', 'Keys', 'Ethereum'];
 
 const NavLink = ({ children, select }: { children: ReactNode, select: () => void }) => (
     <Link
