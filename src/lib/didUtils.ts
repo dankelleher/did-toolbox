@@ -5,7 +5,6 @@ import {
     DidSolService,
     ExtendedCluster,
     Service,
-    VerificationMethod,
     VerificationMethodFlags,
     Wallet,
     BitwiseVerificationMethodFlag, AddVerificationMethodParams,
