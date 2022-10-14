@@ -6,7 +6,7 @@ import {VerificationMethod} from "did-resolver";
 import {BitwiseVerificationMethodFlag} from "@identity.com/sol-did-client";
 
 const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMethod }) => {
-    const { did, getKeyFlags, linkedDIDs, registerDIDOnKey, setKeyOwned } = useDID();
+    const { getKeyFlags, registerDIDOnKey, setKeyOwned } = useDID();
     const [ isOwned, setIsOwned ] = useState(false);
 
     const fragment = verificationMethod.id.replace(/^.*#/, '')

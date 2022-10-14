@@ -27,7 +27,7 @@ export const DIDView:FC = () => {
     const pfp = useMemo(() => {
         if (!did) return "";
         return findPFP(document) || '';
-    }, [document])
+    }, [document, did])
 
     const triggerDelete = ({existing_value}:InteractionProps) => {
         if (!did || !existing_value || !(typeof existing_value === 'object')) return;

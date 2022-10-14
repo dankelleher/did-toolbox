@@ -83,7 +83,7 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
                 });
             }
         }
-    }, [did, wallet, network])
+    }, [did, wallet, network, connection])
 
     useEffect(() => {
         const location = window.location.href.match(/\/(did:sol:.*)#?$/);
@@ -98,7 +98,7 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     useEffect(() => {
         const location = window.location.href.match(/\/(did:sol:.*)#?$/);
         if (location) setDIO(location[1]);
-    }, [window.location.href])
+    }, [])
 
     useEffect(loadDID, [did, loadDID]);
 

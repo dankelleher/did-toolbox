@@ -119,6 +119,7 @@ export const StorageView:FC = () => {
         <div style={thumb} key={file.name}>
             <div style={thumbInner}>
                 <img
+                    alt={file.name}
                     src={file.preview}
                     style={img}
                     // Revoke data uri after image is loaded
