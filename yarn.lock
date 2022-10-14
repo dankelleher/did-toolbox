@@ -1744,18 +1744,10 @@
     tweetnacl "^1.0.3"
     uuid "^8.3.2"
 
-"@civic/did-registry@0.0.3-alpha.1":
+"@civic/did-registry@0.0.3-alpha.1", "@civic/did-registry@^0.0.3-alpha.1":
   version "0.0.3-alpha.1"
   resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.3-alpha.1.tgz#58ef498a61874b525c01da0c84006cbb5874c0ee"
   integrity sha512-CyHylS+QqioeEvdwk/mShE0yGkS7TgQoFc+HO3o2Pfa1dF3hWhPcjVlZiv3lgjNhELsYND9uyABSw5oNlk/Qxg==
-  dependencies:
-    "@identity.com/sol-did-client" "^3.0.1-beta1"
-    "@project-serum/anchor" "^0.25.0"
-
-"@civic/did-registry@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.2.tgz#eb66ae1db488af7db077d8064be30e982b36d63d"
-  integrity sha512-/5nkLCTqECn6NYyZKv+8SThKg9VREvL5jNc6tULvf1aehaX2LKOF3zIIC/iT/o8JAD2CY4Q32w7eqBDPC/AeoA==
   dependencies:
     "@identity.com/sol-did-client" "^3.0.1-beta1"
     "@project-serum/anchor" "^0.25.0"
@@ -7715,24 +7707,6 @@ detective@^5.2.1:
 "did-jwt@git+https://github.com/civicteam/did-jwt":
   version "6.1.0"
   resolved "git+https://github.com/civicteam/did-jwt#d4e318df78bd88e3127e62784915c7a334881eb6"
-  dependencies:
-    "@stablelib/ed25519" "^1.0.2"
-    "@stablelib/random" "^1.0.1"
-    "@stablelib/sha256" "^1.0.1"
-    "@stablelib/x25519" "^1.0.2"
-    "@stablelib/xchacha20poly1305" "^1.0.1"
-    bech32 "^2.0.0"
-    canonicalize "^1.0.8"
-    did-resolver "^3.1.5"
-    elliptic "^6.5.4"
-    js-sha3 "^0.8.0"
-    multiformats "^9.6.4"
-    uint8arrays "^3.0.0"
-
-"did-jwt@git+https://github.com/civicteam/did-jwt.git":
-  version "6.1.0"
-  uid d4e318df78bd88e3127e62784915c7a334881eb6
-  resolved "git+https://github.com/civicteam/did-jwt.git#d4e318df78bd88e3127e62784915c7a334881eb6"
   dependencies:
     "@stablelib/ed25519" "^1.0.2"
     "@stablelib/random" "^1.0.1"
