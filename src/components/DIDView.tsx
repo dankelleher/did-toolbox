@@ -91,7 +91,7 @@ export const DIDView:FC = () => {
             }} />
             <AddKey isOpen={isAddKeyOpen} onClose={(payload) => {
                 setIsAddKeyOpen(false);
-                triggerAddKey(payload);
+                payload && triggerAddKey(payload);
             }} />
         </Center>
     );
