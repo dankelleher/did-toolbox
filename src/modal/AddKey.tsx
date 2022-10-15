@@ -18,6 +18,8 @@ import {
     VerificationMethodType
 } from "@identity.com/sol-did-client";
 import { PublicKey } from "@solana/web3.js";
+import { isAddress } from "@ethersproject/address";
+import { arrayify } from "@ethersproject/bytes";
 
 type Props = { isOpen: boolean, onClose?: (key?: AddVerificationMethodParams) => void };
 export const AddKey:FC<Props> = ({ isOpen, onClose = () => {}} ) => {
@@ -53,8 +55,13 @@ export const AddKey:FC<Props> = ({ isOpen, onClose = () => {}} ) => {
             case VerificationMethodType.Ed25519VerificationKey2018:
                 return new PublicKey(key).toBytes();
             case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
+
             case VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020:
-                return Buffer.from(key, 'hex');
+                // Verify Input
+                if (!isAddress(key)) {
+                    throw new Error("Input is not a valid ethereum address");
+                }
+                return Buffer.from(arrayify(key));
         }
 
         throw new Error("Unsupported verification method type");
@@ -86,7 +93,7 @@ export const AddKey:FC<Props> = ({ isOpen, onClose = () => {}} ) => {
                     <Input onChange={(event) => setKey(event.target.value)} value={key} placeholder='Key'/>
                     <Select
                         value={verificationMethodType}
-                        onChange={(event => setVerificationMethodType(event.target.value as unknown as VerificationMethodType))}>
+                        onChange={(event => setVerificationMethodType(parseInt(event.target.value, 10) as VerificationMethodType))}>
                         {Object.values(VerificationMethodType)
                             .filter((v) => !isNaN(Number(v)))
                             .map((type) => <option value={type}>{VerificationMethodType[type as number]}</option>)

@@ -13,8 +13,9 @@ import {PublicKey} from "@solana/web3.js";
 import {
     AddVerificationMethodParams,
     Service,
-    VerificationMethodFlags
+    VerificationMethodFlags, VerificationMethodType
 } from "@identity.com/sol-did-client";
+import { useWeb3React } from "@web3-react/core";
 
 type DIDContextProps = {
     did: string;
@@ -24,7 +25,7 @@ type DIDContextProps = {
     addKey: (key: AddVerificationMethodParams) => Promise<void>;
     removeKey: (fragment: string) => Promise<void>;
     getKeyFlags: (fragment: string) => Promise<VerificationMethodFlags | undefined>;
-    setKeyOwned: () => Promise<void>;
+    setKeyOwned: (fragment: string, type: VerificationMethodType) => Promise<void>;
     addService: (service: Service) => Promise<void>;
     removeService: (fragment: string) => Promise<void>;
     migrateDID: () => Promise<void>;
@@ -48,7 +49,7 @@ const defaultDIDContextProps: DIDContextProps = {
     addKey: async (key: AddVerificationMethodParams) => {},
     removeKey: async (fragment: string) => {},
     getKeyFlags: async (fragment: string) => undefined,
-    setKeyOwned: async () => {},
+    setKeyOwned: async (fragment: string, type: VerificationMethodType) => {},
     addService: async (service: Service) => {},
     removeService: async (fragment: string) => {},
     migrateDID: async () => {},
@@ -60,6 +61,7 @@ export const DIDContext = createContext<DIDContextProps>(defaultDIDContextProps)
 
 export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwork }> = ({ children, network }) => {
     const wallet = useWallet();
+    const { library } = useWeb3React();
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
     const [did, setDIO] = useState<string>("");
@@ -117,7 +119,8 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
 
     const registerDIDOnKey = () => registerDID(wallet, connection, did).then(() => listRegisteredDIDs(wallet, connection).then(setLinkedDIDs))
 
-    const setKeyOwned = () => setOwned(did, wallet, connection).then(loadDID)
+    const setKeyOwned = (fragment: string, type: VerificationMethodType) => setOwned(fragment, type, did, wallet,
+      connection, library?.getSigner()).then(loadDID)
 
     return (
         <DIDContext.Provider value={{
