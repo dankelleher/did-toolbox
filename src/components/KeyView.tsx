@@ -1,4 +1,4 @@
-import {Badge, Box, Button, Center, useColorModeValue, VStack,} from '@chakra-ui/react';
+import { Badge, Box, Button, Center, Flex, useColorModeValue, VStack, } from '@chakra-ui/react';
 import {FC, useCallback, useEffect, useState} from "react";
 import {useDID} from '../hooks/useDID';
 import {PublicKey} from "@solana/web3.js";
@@ -49,7 +49,7 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
                   }).then(setIsRegistered);
             }
 
-            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019] && verificationMethod.ethereumAddress) {
+            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020] && verificationMethod.ethereumAddress) {
                 getRegisteredDIDsForEthAddress(verificationMethod.ethereumAddress)
                   .then((dids) => {
                       console.log(`Trying to find ${did} in ${dids} (Eth ${verificationMethod.ethereumAddress})`);
@@ -83,22 +83,14 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
             solanaKeyRegistry.register(did).then(() => setIsRegistered(true));
         }
 
-        if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019]
+        if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020]
           && ethereumKeyRegistry
           && verificationMethod.ethereumAddress) {
-            console.log(`registering key ${getKeyString()} for ${did} in did-registry`);
-            ethereumKeyRegistry.register(did).then(() => setIsRegistered(true));
+            console.log(`Getting here!`);
+            ethereumKeyRegistry.register(did).then(() => setIsRegistered(true)).catch(console.error);
         }
 
-        // TODO implement
-
-        // (async () => {
-        //     const fragment = verificationMethod.id.replace(/^.*#/, '')
-        //     const verificationMethodType = VerificationMethodType[verificationMethod.type as keyof typeof VerificationMethodType];
-        //     await setKeyOwned(fragment, verificationMethodType);
-        //     // await registerDIDOnKey();
-        // })();
-    }, [getKeyString, did]);
+    }, [getKeyString, did, solanaKeyRegistry, ethereumKeyRegistry, verificationMethod]);
 
 
 
@@ -128,18 +120,22 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
         >
             {getKeyString()}
         </Box>
-        <Box>
+        <Flex>
+            <Box p={4}>
             {isOwned ?
                 <Badge colorScheme='green'>Owned</Badge>
                 :
                 <Button onClick={claim} disabled={!isConnected(getKeyString())}>Claim</Button>
             }
+            </Box>
+            <Box p={4}>
             {isRegistered ?
                 <Badge colorScheme='green'>Registered</Badge>
                 :
                 <Button onClick={register} disabled={!isConnected(getKeyString())}>Register</Button>
             }
-        </Box>
+            </Box>
+        </Flex>
     </VStack>
 }
 
