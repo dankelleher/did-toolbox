@@ -11,7 +11,7 @@ import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument} from "did-resolver";
 import {PublicKey} from "@solana/web3.js";
 import {
-    AddVerificationMethodParams,
+    AddVerificationMethodParams, ExtendedCluster,
     Service,
     VerificationMethodFlags, VerificationMethodType
 } from "@identity.com/sol-did-client";
@@ -22,6 +22,7 @@ type DIDContextProps = {
     did: string;
     document: DIDDocument;
     linkedDIDs: string[];
+    cluster: ExtendedCluster;
     registerDIDOnKey: () => Promise<void>;
     addKey: (key: AddVerificationMethodParams) => Promise<void>;
     removeKey: (fragment: string) => Promise<void>;
@@ -46,6 +47,7 @@ const defaultDIDContextProps: DIDContextProps = {
     did: "",
     document: defaultDocument,
     linkedDIDs: [],
+    cluster: "mainnet-beta",
     registerDIDOnKey: async () => {},
     addKey: async (key: AddVerificationMethodParams) => {},
     removeKey: async (fragment: string) => {},
@@ -66,10 +68,16 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
     const [did, setDIO] = useState<string>("");
+    const [cluster, setCluster] = useState<ExtendedCluster>("mainnet-beta");
     const { registeredSolanaDIDs, registeredEthereumDIDs, reload} = useRegistry();
     const [linkedDIDs, setLinkedDIDs] = useState<string[]>([]);
     const [isLegacyDID, setIsLegacyDID] = useState<boolean>();
     const [accountAddress, setAccountAddress] = useState<PublicKey>();
+
+
+    useEffect(() => {
+        setCluster(network) // TODO: Maybe add some translation layer here.
+    }, [network]);
 
     useEffect(() => {
         const mergedDIDs = [...registeredSolanaDIDs, ...registeredEthereumDIDs];
@@ -128,6 +136,7 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
             did,
             document: document ?? defaultDocument,
             linkedDIDs,
+            cluster,
             registerDIDOnKey,
             addKey,
             removeKey,

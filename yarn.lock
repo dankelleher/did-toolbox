@@ -1744,10 +1744,18 @@
     tweetnacl "^1.0.3"
     uuid "^8.3.2"
 
-"@civic/did-registry@0.0.3-alpha.3", "@civic/did-registry@^0.0.3-alpha.3":
+"@civic/did-registry@0.0.3-alpha.3":
   version "0.0.3-alpha.3"
   resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.3-alpha.3.tgz#5900d97b8a7a80b29fa6327fb203c46eb3f32fc2"
   integrity sha512-3o57XJAwi4sqa5pukOrdkjDAWeJ/8XRaOlynRBz36XiSuvUz0eL47lt8INZOUhzsCRMt7X4qPdUNxLPRPvUt9g==
+  dependencies:
+    "@identity.com/sol-did-client" "^3.0.1-beta1"
+    "@project-serum/anchor" "^0.25.0"
+
+"@civic/did-registry@^0.0.3-alpha.4":
+  version "0.0.3-alpha.4"
+  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.3-alpha.4.tgz#9bb00237aa590b2d250be9085ece92b09c09cbe4"
+  integrity sha512-JexOHGO/AeNoHEj8X2vOt97CR1AMydd6ArZ2qE8qLV8QARHvj++hhsFBROBTSr90rE6b2jsHnWpfQVlhpEc6Ow==
   dependencies:
     "@identity.com/sol-did-client" "^3.0.1-beta1"
     "@project-serum/anchor" "^0.25.0"

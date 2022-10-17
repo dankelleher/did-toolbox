@@ -6,10 +6,12 @@ import {VerificationMethod} from "did-resolver";
 import { BitwiseVerificationMethodFlag, VerificationMethodType } from "@identity.com/sol-did-client";
 import { isAddress } from "@ethersproject/address";
 import { useRegistry } from "../hooks/useRegistry";
+import { useMetaWallet } from "../hooks/useMetaWallet";
 
 const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMethod }) => {
     const { getKeyFlags, registerDIDOnKey, setKeyOwned, did } = useDID();
-    const { solanaKeyRegistry, ethereumKeyRegistry, registeredSolanaDIDs, registeredEthereumDIDs } = useRegistry();
+    const { isConnected } = useMetaWallet();
+    const { getRegisteredDIDsForAccount, getRegisteredDIDsForEthAddress, solanaKeyRegistry, ethereumKeyRegistry } = useRegistry();
     const [ isOwned, setIsOwned ] = useState(false);
     const [ isRegistered, setIsRegistered ] = useState(false);
 
@@ -31,31 +33,34 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
     }, [verificationMethod]);
 
     useEffect(() => {
-        const setOwnershipFlag = async () => {
-            const flags = await getKeyFlags(fragment);
-            if (flags && flags.has(BitwiseVerificationMethodFlag.OwnershipProof)) {
-                console.log("setting isOwned to true");
-                // the type of this is messed up at the moment, it is mapped to an enum
-                // TODO change this when the sol-did-client is fixed
-                setIsOwned(true);
-            }
+        const setOwnershipFlag = () => {
+            getKeyFlags(fragment)
+              .then((flags) => flags != undefined && flags.has(BitwiseVerificationMethodFlag.OwnershipProof))
+              .then(setIsOwned);
         }
 
         // Check Key against Registry
-        const setRegistryStatus = async () => {
-            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.Ed25519VerificationKey2018]) {
-                // TODO: Bug need to be able to pass current Key (getKeyString()) into here
-                setIsRegistered((registeredSolanaDIDs || []).includes(did));
+        const setRegistryStatus = () => {
+            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.Ed25519VerificationKey2018] && verificationMethod.publicKeyBase58) {
+                getRegisteredDIDsForAccount(new PublicKey(verificationMethod.publicKeyBase58))
+                  .then((dids) => {
+                      console.log(`Trying to find ${did} in ${dids} (Sol ${verificationMethod.publicKeyBase58})`);
+                      return dids.includes(did)
+                  }).then(setIsRegistered);
             }
 
-            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019]) {
-                setIsRegistered((registeredEthereumDIDs || []).includes(verificationMethod.controller));
+            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019] && verificationMethod.ethereumAddress) {
+                getRegisteredDIDsForEthAddress(verificationMethod.ethereumAddress)
+                  .then((dids) => {
+                      console.log(`Trying to find ${did} in ${dids} (Eth ${verificationMethod.ethereumAddress})`);
+                      return dids.includes(did)
+                  }).then(setIsRegistered);
             }
         };
 
         setOwnershipFlag();
         setRegistryStatus();
-    }, [verificationMethod, registeredSolanaDIDs, registeredEthereumDIDs, getKeyString, did, fragment, getKeyFlags]);
+    }, [verificationMethod, getRegisteredDIDsForAccount, getRegisteredDIDsForEthAddress, did, fragment, getKeyFlags]);
 
     const claim = useCallback(() => {
         console.log("claiming ownership");
@@ -69,6 +74,22 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
 
     const register = useCallback(() => {
         console.log(`registering key ${getKeyString()} for ${did} in did-registry`);
+
+
+        // TODO: Only the Button check guarantees that the right wallet is connected.
+        if (verificationMethod.type === VerificationMethodType[VerificationMethodType.Ed25519VerificationKey2018]
+          && solanaKeyRegistry
+          && verificationMethod.publicKeyBase58) {
+            solanaKeyRegistry.register(did).then(() => setIsRegistered(true));
+        }
+
+        if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019]
+          && ethereumKeyRegistry
+          && verificationMethod.ethereumAddress) {
+            console.log(`registering key ${getKeyString()} for ${did} in did-registry`);
+            ethereumKeyRegistry.register(did).then(() => setIsRegistered(true));
+        }
+
         // TODO implement
 
         // (async () => {
@@ -78,6 +99,8 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
         //     // await registerDIDOnKey();
         // })();
     }, [getKeyString, did]);
+
+
 
     return <VStack
         borderWidth="1px"
@@ -109,12 +132,12 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
             {isOwned ?
                 <Badge colorScheme='green'>Owned</Badge>
                 :
-                <Button onClick={claim}>Claim</Button>
+                <Button onClick={claim} disabled={!isConnected(getKeyString())}>Claim</Button>
             }
             {isRegistered ?
                 <Badge colorScheme='green'>Registered</Badge>
                 :
-                <Button onClick={register}>Register</Button>
+                <Button onClick={register} disabled={!isConnected(getKeyString())}>Register</Button>
             }
         </Box>
     </VStack>
