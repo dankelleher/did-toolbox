@@ -9,10 +9,9 @@ import { useRegistry } from "../hooks/useRegistry";
 
 const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMethod }) => {
     const { getKeyFlags, registerDIDOnKey, setKeyOwned, did } = useDID();
-    const { registry } = useRegistry();
+    const { solanaKeyRegistry, ethereumKeyRegistry, registeredSolanaDIDs, registeredEthereumDIDs } = useRegistry();
     const [ isOwned, setIsOwned ] = useState(false);
     const [ isRegistered, setIsRegistered ] = useState(false);
-
 
     // TODO: This is the reason why it's hard to work on the Did Document directly.
     const fragment = verificationMethod.id.replace(/^.*#/, '')
@@ -44,21 +43,19 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
 
         // Check Key against Registry
         const setRegistryStatus = async () => {
-            if (registry) {
-                if (verificationMethod.type === VerificationMethodType[VerificationMethodType.Ed25519VerificationKey2018]) {
-                    // TODO: Bug need to be able to pass current Key (getKeyString()) into here
-                    registry.listDIDs().then((dids) => dids.includes(did)).then(setIsRegistered);
-                }
+            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.Ed25519VerificationKey2018]) {
+                // TODO: Bug need to be able to pass current Key (getKeyString()) into here
+                setIsRegistered((registeredSolanaDIDs || []).includes(did));
+            }
 
-                if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019]) {
-                    registry.listDIDsForEthAddress(getKeyString()).then((dids) => dids.includes(verificationMethod.controller)).then(setIsRegistered);
-                }
+            if (verificationMethod.type === VerificationMethodType[VerificationMethodType.EcdsaSecp256k1VerificationKey2019]) {
+                setIsRegistered((registeredEthereumDIDs || []).includes(verificationMethod.controller));
             }
         };
 
         setOwnershipFlag();
         setRegistryStatus();
-    }, [verificationMethod, registry, getKeyString, did]);
+    }, [verificationMethod, registeredSolanaDIDs, registeredEthereumDIDs, getKeyString, did, fragment, getKeyFlags]);
 
     const claim = useCallback(() => {
         console.log("claiming ownership");
@@ -110,14 +107,14 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
         </Box>
         <Box>
             {isOwned ?
-              <Badge colorScheme='green'>Owned</Badge>
-              :
-              <Button onClick={claim}>Claim</Button>
+                <Badge colorScheme='green'>Owned</Badge>
+                :
+                <Button onClick={claim}>Claim</Button>
             }
             {isRegistered ?
-              <Badge colorScheme='green'>Registered</Badge>
-              :
-              <Button onClick={register}>Register</Button>
+                <Badge colorScheme='green'>Registered</Badge>
+                :
+                <Button onClick={register}>Register</Button>
             }
         </Box>
     </VStack>
@@ -130,10 +127,10 @@ export const KeyView:FC = () => {
         <>
             <Center py={6} w={"full"}>
                 <VStack
-                  padding={8}>
-                {document.verificationMethod?.map(
-                  verificationMethod => <KeyEntry verificationMethod={verificationMethod}/>
-                )}
+                    padding={8}>
+                    {document.verificationMethod?.map(
+                        verificationMethod => <KeyEntry verificationMethod={verificationMethod}/>
+                    )}
                 </VStack>
             </Center>
         </>

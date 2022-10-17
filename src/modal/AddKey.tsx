@@ -55,7 +55,6 @@ export const AddKey:FC<Props> = ({ isOpen, onClose = () => {}} ) => {
             case VerificationMethodType.Ed25519VerificationKey2018:
                 return new PublicKey(key).toBytes();
             case VerificationMethodType.EcdsaSecp256k1VerificationKey2019:
-
             case VerificationMethodType.EcdsaSecp256k1RecoveryMethod2020:
                 // Verify Input
                 if (!isAddress(key)) {

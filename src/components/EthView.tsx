@@ -1,15 +1,15 @@
-import {Avatar, Box, Button, Center, Image, Stack, Textarea} from '@chakra-ui/react';
-import {FC, useCallback, useEffect, useState} from "react";
+import {Avatar, Box, Button, Center, Stack, Textarea} from '@chakra-ui/react';
+import {FC, useCallback, useState} from "react";
 import {EthereumConnector} from "./EthConnector";
 import {useWeb3React} from "@web3-react/core";
 import {useProfile} from "../hooks/useProfile";
 import {useRegistry} from "../hooks/useRegistry";
 
 const RegisteredDIDs:FC = () => {
-    const { ethereum } = useRegistry();
+    const { registeredEthereumDIDs } = useRegistry();
 
     return <ul>
-        {ethereum.map((did) => <li>{did}</li>)}
+        {registeredEthereumDIDs.map((did) => <li>{did}</li>)}
     </ul>
 }
 

@@ -15,14 +15,8 @@ import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument, ServiceEndpoint, VerificationMethod as DIDVerificationMethod} from "did-resolver";
 import {Registry} from '@civic/did-registry'
 
-export const listRegisteredDIDs = (wallet: WalletContextState, connection: Connection): Promise<string[]> => {
-    const registry = new Registry(toWallet(wallet), connection);
-
-    return registry.listDIDs();
-}
-
 export const registerDID = (wallet: WalletContextState, connection: Connection, did: string): Promise<string> => {
-    const registry = new Registry(toWallet(wallet), connection);
+    const registry = Registry.for(toWallet(wallet), connection);
 
     return registry.register(did);
 }

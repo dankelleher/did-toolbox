@@ -1,39 +1,53 @@
 import {useWeb3React} from "@web3-react/core";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
-import {useEffect, useState} from "react";
-import {Registry, Wallet} from "@civic/did-registry";
+import {useCallback, useEffect, useState} from "react";
+import {EthRegistry, ReadOnlyRegistry, Registry, Wallet} from "@civic/did-registry";
 
-export type RegistryContrxt = { solana: string[], ethereum: string[], registry?: Registry };
-export const useRegistry = (): RegistryContrxt => {
+export type RegistryContext = {
+    registeredSolanaDIDs: string[],
+    registeredEthereumDIDs: string[],
+    solanaKeyRegistry?: Registry,
+    ethereumKeyRegistry?: EthRegistry
+    reload: () => void
+};
+export const useRegistry = (): RegistryContext => {
     const { account } = useWeb3React();
     const wallet = useWallet();
     const { connection } = useConnection();
     const [ registeredSolanaDIDs, setRegisteredSolanaDIDs ] = useState<string[]>([]);
     const [ registeredEthereumDIDs, setRegisteredEthereumDIDs ] = useState<string[]>([]);
-    const [ registry, setRegistry ] = useState<Registry | undefined>();
+    const [ solanaKeyRegistry, setSolanaKeyRegistry ] = useState<Registry>();
+    const [ ethereumKeyRegistry, setEthereumKeyRegistry ] = useState<EthRegistry>();
 
-    useEffect(() => {
-        if (wallet) {
-            setRegistry(new Registry(wallet as Wallet, connection));
+    const loadDIDs = useCallback(() => {
+        console.log("Loading DIDs")
+        if (wallet.publicKey) {
+            console.log("Found wallet public key " + wallet.publicKey.toBase58())
+            ReadOnlyRegistry.for(wallet.publicKey, connection).listDIDs().then(setRegisteredSolanaDIDs);
+            setSolanaKeyRegistry(Registry.for(wallet as Wallet, connection));
         } else {
-            setRegistry(undefined);
-        }
-    }, [wallet, connection]);
-
-
-    useEffect(() => {
-        if (registry) {
-            registry.listDIDs().then(setRegisteredSolanaDIDs);
-
-            if (account) {
-                registry.listDIDsForEthAddress(account).then(setRegisteredEthereumDIDs);
-            }
-        }
-        else {
             setRegisteredSolanaDIDs([]);
+        }
+
+        if (account) {
+            console.log("Found Ethereum account " + account)
+            ReadOnlyRegistry.forEthAddress(account, connection).listDIDs().then(d => {
+                console.log("Found Ethereum DIDs" + d)
+                setRegisteredEthereumDIDs(d)
+            });
+            setEthereumKeyRegistry(EthRegistry.forEthAddress(account, wallet as Wallet, connection));
+        } else {
             setRegisteredEthereumDIDs([]);
         }
-    }, [account, registry]);
+    }, [account, wallet, connection]);
 
-    return { solana: registeredSolanaDIDs, ethereum: registeredEthereumDIDs, registry };
+    useEffect(loadDIDs, [account, wallet, connection]);
+
+    return {
+        registeredSolanaDIDs,
+        registeredEthereumDIDs,
+        solanaKeyRegistry,
+        ethereumKeyRegistry,
+        reload: loadDIDs
+    };
 }

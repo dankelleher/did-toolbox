@@ -1744,10 +1744,10 @@
     tweetnacl "^1.0.3"
     uuid "^8.3.2"
 
-"@civic/did-registry@0.0.3-alpha.1", "@civic/did-registry@^0.0.3-alpha.1":
-  version "0.0.3-alpha.1"
-  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.3-alpha.1.tgz#58ef498a61874b525c01da0c84006cbb5874c0ee"
-  integrity sha512-CyHylS+QqioeEvdwk/mShE0yGkS7TgQoFc+HO3o2Pfa1dF3hWhPcjVlZiv3lgjNhELsYND9uyABSw5oNlk/Qxg==
+"@civic/did-registry@0.0.3-alpha.3", "@civic/did-registry@^0.0.3-alpha.3":
+  version "0.0.3-alpha.3"
+  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.3-alpha.3.tgz#5900d97b8a7a80b29fa6327fb203c46eb3f32fc2"
+  integrity sha512-3o57XJAwi4sqa5pukOrdkjDAWeJ/8XRaOlynRBz36XiSuvUz0eL47lt8INZOUhzsCRMt7X4qPdUNxLPRPvUt9g==
   dependencies:
     "@identity.com/sol-did-client" "^3.0.1-beta1"
     "@project-serum/anchor" "^0.25.0"
@@ -1780,13 +1780,13 @@
     ed2curve-esm "^0.3.0-alpha-1"
     tweetnacl "^1.0.3"
 
-"@civic/profile@0.1.3-alpha-eth.1":
-  version "0.1.3-alpha-eth.1"
-  resolved "https://registry.yarnpkg.com/@civic/profile/-/profile-0.1.3-alpha-eth.1.tgz#27c348908401cf33b1f24ed0609688d616dd275d"
-  integrity sha512-B3mXDMNP9x/cH/10YUnN/NvPeQ/ewStO1GFEJEx6hLsODlVZpXiVZ2yMr22Yjeq/iVPnzk7oU6RCdM8GOPt8WQ==
+"@civic/profile@0.1.3-alpha-eth.3":
+  version "0.1.3-alpha-eth.3"
+  resolved "https://registry.yarnpkg.com/@civic/profile/-/profile-0.1.3-alpha-eth.3.tgz#c0c82a63a53cc646c7bca6061d825d1a3c67d7e1"
+  integrity sha512-1sqFBFSflggqjB8otN1N7LyFO6pLnmZk8y9RxgjlNeH5ht5diaSGb7KHV+0cPIssQ+a0nQuDuTjCLU9TIfSY1A==
   dependencies:
     "@bonfida/spl-name-service" "^0.1.50"
-    "@civic/did-registry" "0.0.3-alpha.1"
+    "@civic/did-registry" "0.0.3-alpha.3"
     "@civic/storage" "^0.1.14"
     "@identity.com/sol-did-client" "^3.1.2"
     "@identity.com/solana-gateway-ts" "^0.9.0-beta.1"

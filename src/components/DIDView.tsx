@@ -44,12 +44,12 @@ export const DIDView:FC = () => {
     const triggerAddService = useCallback(async (service: Service) => {
         if (!did) return;
         await addService(service);
-    }, [did])
+    }, [did, addService])
 
     const triggerAddKey = useCallback(async (key: AddVerificationMethodParams) => {
         if (!did) return;
         await addKey(key);
-    }, [did])
+    }, [did, addKey])
 
     return (
         <Center py={6}>

@@ -5,7 +5,7 @@ import {
     keyToDid, migrate,
     removeServiceFromDID,
     removeVerificationMethodFromDID,
-    resolveDID, getDIDAddress, listRegisteredDIDs, getVerificationMethodFlags, registerDID, setOwned
+    resolveDID, getDIDAddress, getVerificationMethodFlags, registerDID, setOwned
 } from "../lib/didUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument} from "did-resolver";
@@ -16,6 +16,7 @@ import {
     VerificationMethodFlags, VerificationMethodType
 } from "@identity.com/sol-did-client";
 import { useWeb3React } from "@web3-react/core";
+import {useRegistry} from "./useRegistry";
 
 type DIDContextProps = {
     did: string;
@@ -65,9 +66,17 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
     const [did, setDIO] = useState<string>("");
+    const { registeredSolanaDIDs, registeredEthereumDIDs, reload} = useRegistry();
     const [linkedDIDs, setLinkedDIDs] = useState<string[]>([]);
     const [isLegacyDID, setIsLegacyDID] = useState<boolean>();
     const [accountAddress, setAccountAddress] = useState<PublicKey>();
+
+    useEffect(() => {
+        const mergedDIDs = [...registeredSolanaDIDs, ...registeredEthereumDIDs];
+        // TODO this is a hack - clean up
+        const didsOnNetwork = mergedDIDs.map(did => did.replace("did:sol:", `did:sol:${network}:`));
+        setLinkedDIDs(didsOnNetwork);
+    }, [registeredSolanaDIDs, registeredEthereumDIDs]);
 
     const loadDID = useCallback(() => {
         console.log("Loading DID", did);
@@ -76,14 +85,6 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
             resolveDID(did, connection).then(setDocument).catch(console.error);
             isMigratable(did, connection).then(setIsLegacyDID)
             getDIDAddress(did, connection).then(setAccountAddress);
-
-            if (wallet && wallet.publicKey) {
-                listRegisteredDIDs(wallet, connection).then(linkedDIDs => {
-                    // TODO this is a hack - clean up
-                    const didsOnNetwork = linkedDIDs.map(did => did.replace("did:sol:", `did:sol:${network}:`));
-                    setLinkedDIDs(didsOnNetwork);
-                });
-            }
         }
     }, [did, wallet, network, connection])
 
@@ -117,7 +118,7 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     const migrateDID = () => migrate(did, wallet, connection)
     const isDIDInitialized = () => isInitialized(did, connection);
 
-    const registerDIDOnKey = () => registerDID(wallet, connection, did).then(() => listRegisteredDIDs(wallet, connection).then(setLinkedDIDs))
+    const registerDIDOnKey = () => registerDID(wallet, connection, did).then(reload)
 
     const setKeyOwned = (fragment: string, type: VerificationMethodType) => setOwned(fragment, type, did, wallet,
       connection, library?.getSigner()).then(loadDID)
