@@ -26,7 +26,7 @@ export const App = () => {
         <ChakraProvider theme={theme}>
             <SolanaWalletProvider network={network}>
                 <Web3ReactProvider getLibrary={getLibrary}>
-                    <DIDProvider network={network}>
+                    <DIDProvider network={network} setNetwork={setNetwork}>
                         <Navbar setNetwork={setNetwork} network={network} setPage={setPage}/>
                         <Page selectedPage={page}/>
                     </DIDProvider>

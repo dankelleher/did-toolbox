@@ -10,7 +10,7 @@ import {
     BitwiseVerificationMethodFlag, AddVerificationMethodParams, VerificationMethodType, EthSigner,
 } from "@identity.com/sol-did-client";
 import {WalletContextState} from "@solana/wallet-adapter-react/src/useWallet";
-import {sendTransaction} from "./solanaUtils";
+import { sendTransaction, toSolanaCluster } from "./solanaUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument, ServiceEndpoint, VerificationMethod as DIDVerificationMethod} from "did-resolver";
 import {Registry} from '@civic/did-registry'
@@ -49,8 +49,8 @@ const getServiceFromDID = (did: string, wallet?: WalletContextState, connection?
     );
 
 export const keyToDid = (key: PublicKey, network: WalletAdapterNetwork): string => {
-    const networkPrefix = network === WalletAdapterNetwork.Mainnet ? "" : network.toString() + ":";
-    return `did:sol:${networkPrefix}${key.toBase58()}`;
+    const cluster = toSolanaCluster(network);
+    return DidSolIdentifier.create(key, cluster).toString();
 }
 export const findPFP = (document: DIDDocument): string | undefined => document.service?.find(s => s.type === 'PFP')?.serviceEndpoint
 

@@ -4,7 +4,7 @@ import { Select } from "@chakra-ui/react";
 
 type Props = { network: WalletAdapterNetwork, setNetwork: (network: WalletAdapterNetwork) => void };
 export const NetworkDropdown: FC<Props> = ({ network, setNetwork }) =>
-    <Select defaultValue={network} onChange={(event) => setNetwork(event.target.value as WalletAdapterNetwork)}>
+    <Select value={network} onChange={(event) => setNetwork(event.target.value as WalletAdapterNetwork)}>
         {Object.values(WalletAdapterNetwork).map(n =>
             <option key={n} value={n}>{n}</option>
         )}

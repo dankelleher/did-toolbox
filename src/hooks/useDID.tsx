@@ -11,12 +11,13 @@ import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument} from "did-resolver";
 import {PublicKey} from "@solana/web3.js";
 import {
-    AddVerificationMethodParams, ExtendedCluster,
+    AddVerificationMethodParams, DidSolIdentifier, ExtendedCluster,
     Service,
     VerificationMethodFlags, VerificationMethodType
 } from "@identity.com/sol-did-client";
 import { useWeb3React } from "@web3-react/core";
 import {useRegistry} from "./useRegistry";
+import { fromSolanaCluster } from "../lib/solanaUtils";
 
 type DIDContextProps = {
     did: string;
@@ -62,12 +63,13 @@ const defaultDIDContextProps: DIDContextProps = {
 }
 export const DIDContext = createContext<DIDContextProps>(defaultDIDContextProps)
 
-export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwork }> = ({ children, network }) => {
+export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwork, setNetwork: (network : WalletAdapterNetwork) => void
+}> = ({ children, network, setNetwork }) => {
     const wallet = useWallet();
     const { library } = useWeb3React();
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
-    const [did, setDIO] = useState<string>("");
+    const [did, setDID] = useState<string>("");
     const [cluster, setCluster] = useState<ExtendedCluster>("mainnet-beta");
     const { registeredSolanaDIDs, registeredEthereumDIDs, reload} = useRegistry();
     const [linkedDIDs, setLinkedDIDs] = useState<string[]>([]);
@@ -97,18 +99,27 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     }, [did, wallet, network, connection])
 
     useEffect(() => {
-        const location = window.location.href.match(/\/(did:sol:.*)#?$/);
-        if (location) {
-            setDIO(location[1]);
+        const matches = window.location.href.match(/\/(did:sol:.*)#?$/);
+        if (matches) {
+            console.log(`Found DID in URL: ${matches.map(m => m)}`);
+            const identifier = DidSolIdentifier.parse(matches[1]);
+            console.log(`Setting to ${identifier.toString(false)}`);
+            const network = fromSolanaCluster(identifier.clusterType);
+            console.log(`Setting network to ${network}`);
+            if (network) {
+                console.log(`Calling Setting network to ${network}`);
+                setNetwork(network);
+            }
+            setDID(identifier.toString(false));
         } else if (wallet && wallet.publicKey) {
             const did = keyToDid(wallet.publicKey, network);
-            setDIO(did);
+            setDID(did);
         }
     }, [wallet, network]);
 
     useEffect(() => {
         const location = window.location.href.match(/\/(did:sol:.*)#?$/);
-        if (location) setDIO(location[1]);
+        if (location) setDID(location[1]);
     }, [])
 
     useEffect(loadDID, [did, loadDID]);
