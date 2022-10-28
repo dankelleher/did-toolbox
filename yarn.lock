@@ -2724,10 +2724,10 @@
     bs58 "^5.0.0"
     did-resolver "^3.2.2"
 
-"@identity.com/sol-did-client@^3.1.4-beta1":
-  version "3.1.4-beta1"
-  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.1.4-beta1.tgz#ddadb46af6145759d5dcbced38a904fb4fd816c1"
-  integrity sha512-EBgGqHNXU9RH7Zz1lnsP6+3vgMxpe2BuzTMtwUTi7jHfsogzWAnuTw32Pu6A8fj7c+Xz7aqHHMBjh35sgr6nKg==
+"@identity.com/sol-did-client@^3.1.5-beta1":
+  version "3.1.5-beta1"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.1.5-beta1.tgz#9f4a863032e913c0bc47bc91ed3ad15f4efce4a0"
+  integrity sha512-AJAdsDcDtmnri5kj9rAJlKIZ+0NSpHsYNdmTZ1lhDGQaldot1EFafiZv782RxxOddSjDIdkWPIEQuIfvM260ow==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"

@@ -15,6 +15,7 @@ import {
     Service,
     VerificationMethodFlags, VerificationMethodType
 } from "@identity.com/sol-did-client";
+import { Web3Provider } from '@ethersproject/providers';
 import { useWeb3React } from "@web3-react/core";
 import {useRegistry} from "./useRegistry";
 import { fromSolanaCluster } from "../lib/solanaUtils";
@@ -66,7 +67,7 @@ export const DIDContext = createContext<DIDContextProps>(defaultDIDContextProps)
 export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwork, setNetwork: (network : WalletAdapterNetwork) => void
 }> = ({ children, network, setNetwork }) => {
     const wallet = useWallet();
-    const { library } = useWeb3React();
+    const { library } = useWeb3React<Web3Provider>();
     const {connection} = useConnection();
     const [document, setDocument] = useState<DIDDocument>();
     const [did, setDID] = useState<string>("");
