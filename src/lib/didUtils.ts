@@ -5,25 +5,18 @@ import {
     DidSolService,
     ExtendedCluster,
     Service,
-    VerificationMethod,
     VerificationMethodFlags,
     Wallet,
-    BitwiseVerificationMethodFlag, AddVerificationMethodParams,
+    BitwiseVerificationMethodFlag, AddVerificationMethodParams, VerificationMethodType, EthSigner,
 } from "@identity.com/sol-did-client";
 import {WalletContextState} from "@solana/wallet-adapter-react/src/useWallet";
-import {sendTransaction} from "./solanaUtils";
+import { sendTransaction, toSolanaCluster } from "./solanaUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument, ServiceEndpoint, VerificationMethod as DIDVerificationMethod} from "did-resolver";
 import {Registry} from '@civic/did-registry'
 
-export const listRegisteredDIDs = (wallet: WalletContextState, connection: Connection): Promise<string[]> => {
-    const registry = new Registry(toWallet(wallet), connection);
-
-    return registry.listDIDs();
-}
-
 export const registerDID = (wallet: WalletContextState, connection: Connection, did: string): Promise<string> => {
-    const registry = new Registry(toWallet(wallet), connection);
+    const registry = Registry.for(toWallet(wallet), connection);
 
     return registry.register(did);
 }
@@ -56,8 +49,8 @@ const getServiceFromDID = (did: string, wallet?: WalletContextState, connection?
     );
 
 export const keyToDid = (key: PublicKey, network: WalletAdapterNetwork): string => {
-    const networkPrefix = network === WalletAdapterNetwork.Mainnet ? "" : network.toString() + ":";
-    return `did:sol:${networkPrefix}${key.toBase58()}`;
+    const cluster = toSolanaCluster(network);
+    return DidSolIdentifier.create(key, cluster).toString();
 }
 export const findPFP = (document: DIDDocument): string | undefined => document.service?.find(s => s.type === 'PFP')?.serviceEndpoint
 
@@ -125,24 +118,30 @@ export const removeVerificationMethodFromDID = async (did: string, wallet: Walle
     await didSolService.removeVerificationMethod(fragment).rpc();
 }
 
-export const setOwned = async (did: string, wallet: WalletContextState, connection: Connection): Promise<void> => {
+export const setOwned = async (fragment: string, type: VerificationMethodType, did: string, wallet: WalletContextState, connection: Connection, ethSigner?: EthSigner): Promise<void> => {
     if (!wallet.publicKey) throw new Error('Wallet is not connected');
 
+    // Why is this required? Did we not read the state when initializing the service?
     const didSolService = await getServiceFromDID(did, wallet, connection);
-    const document = await didSolService.resolve();
+    // get current flags
+    const flags = await getVerificationMethodFlags(did, wallet, fragment, connection) || VerificationMethodFlags.none();
+    // set Ownership flag
+    flags.set(BitwiseVerificationMethodFlag.OwnershipProof);
 
-    // TODO or get the didAccount and iterate over the verification methods
-    const fragment = document
-        .verificationMethod
-        ?.find(
-            vm => vm.publicKeyBase58 === wallet.publicKey?.toBase58()
-        )
-        ?.id
-        .match(/^did:sol:.*#(.*)$/)
-        ?.[1];
+    // get Nonce
+    // const nonce = await didSolService.getNonce();
+    // console.log(`Nonce: ${nonce}`);
+    // console.log(`Flags: ${nonce.toBuffer('le', 8)}`);
 
-    if (!fragment) throw new Error('No verification method found');
-    await didSolService.setVerificationMethodFlags(fragment, [BitwiseVerificationMethodFlag.OwnershipProof], wallet.publicKey).rpc();
+    // Prepare prepare setVM Instruction
+    didSolService.setVerificationMethodFlags(fragment, flags.array, wallet.publicKey);
+
+    if (type !== VerificationMethodType.Ed25519VerificationKey2018 && ethSigner) {
+        // Assume Eth Signature required
+        didSolService.withEthSigner(ethSigner)
+    }
+
+    await didSolService.rpc();
 }
 
 export const isMigratable = async (did: string, connection: Connection): Promise<boolean> => {

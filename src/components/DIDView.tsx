@@ -27,7 +27,7 @@ export const DIDView:FC = () => {
     const pfp = useMemo(() => {
         if (!did) return "";
         return findPFP(document) || '';
-    }, [document])
+    }, [document, did])
 
     const triggerDelete = ({existing_value}:InteractionProps) => {
         if (!did || !existing_value || !(typeof existing_value === 'object')) return;
@@ -44,12 +44,12 @@ export const DIDView:FC = () => {
     const triggerAddService = useCallback(async (service: Service) => {
         if (!did) return;
         await addService(service);
-    }, [did])
+    }, [did, addService])
 
     const triggerAddKey = useCallback(async (key: AddVerificationMethodParams) => {
         if (!did) return;
         await addKey(key);
-    }, [did])
+    }, [did, addKey])
 
     return (
         <Center py={6}>
@@ -91,7 +91,7 @@ export const DIDView:FC = () => {
             }} />
             <AddKey isOpen={isAddKeyOpen} onClose={(payload) => {
                 setIsAddKeyOpen(false);
-                triggerAddKey(payload);
+                payload && triggerAddKey(payload);
             }} />
         </Center>
     );
