@@ -1,5 +1,5 @@
 import {LexiWallet} from "@civic/lexi";
-import {MessageSignerWalletAdapter} from "@solana/wallet-adapter-base";
+import {MessageSignerWalletAdapter, WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 
 const generateSeed = () => window.crypto.getRandomValues(new Uint8Array(32));
 
@@ -44,4 +44,11 @@ export const decrypt = async (payload: EncryptedPayload, did: string, wallet: Me
         name: payload.name,
         mimeType: payload.mimeType,
     };
+}
+
+export const endpointFromEnv = (network: WalletAdapterNetwork) => {
+    switch (network) {
+        case WalletAdapterNetwork.Mainnet: return process.env.REACT_APP_RPC_ENDPOINT_MAINNET;
+        default: return process.env['REACT_APP_RPC_ENDPOINT_' + network.toUpperCase()];
+    }
 }
