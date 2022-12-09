@@ -1,9 +1,11 @@
 import {useWeb3React} from "@web3-react/core";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {EthRegistry, ReadOnlyRegistry, Registry, Wallet} from "@civic/did-registry";
 import { PublicKey } from "@solana/web3.js";
 import { useDID } from "./useDID";
+import {keyToDid} from "../lib/didUtils";
+import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 
 export type RegistryContext = {
     registeredSolanaDIDs: string[],
@@ -11,7 +13,7 @@ export type RegistryContext = {
     solanaKeyRegistry?: Registry,
     ethereumKeyRegistry?: EthRegistry
     getRegisteredDIDsForEthAddress: (ethAddress: string) => Promise<string[]>,
-    getRegisteredDIDsForAccount: (account: PublicKey) => Promise<string[]>,
+    getRegisteredDIDsForKey: (account: PublicKey) => Promise<string[]>,
     reload: () => void
 };
 export const useRegistry = (): RegistryContext => {
@@ -24,19 +26,27 @@ export const useRegistry = (): RegistryContext => {
     const [ solanaKeyRegistry, setSolanaKeyRegistry ] = useState<Registry>();
     const [ ethereumKeyRegistry, setEthereumKeyRegistry ] = useState<EthRegistry>();
 
+    const naturalDID = useMemo(() => wallet?.publicKey ? keyToDid(wallet.publicKey, cluster as WalletAdapterNetwork ) : null, [wallet, cluster]);
+
     const getRegisteredDIDsForEthAddress = useCallback(
       (ethAddress: string): Promise<string[]> => ReadOnlyRegistry.forEthAddress(ethAddress, connection, cluster).listDIDs()
       ,[connection]);
 
-    const getRegisteredDIDsForAccount = useCallback(
-      (account: PublicKey): Promise<string[]> => ReadOnlyRegistry.for(account, connection, cluster).listDIDs()
-      ,[connection]);
+    const getRegisteredDIDsForKey = useCallback(
+      (key: PublicKey): Promise<string[]> => ReadOnlyRegistry
+          .for(key, connection, cluster)
+          .listDIDs()
+          .then(dids => [
+              ...( naturalDID && !dids.includes(naturalDID) ? [naturalDID] : []),
+                ...dids,
+          ])
+      ,[connection, naturalDID]);
 
     const loadDIDs = useCallback(() => {
         console.log("Loading DIDs")
         if (wallet.publicKey) {
             console.log("Found wallet public key " + wallet.publicKey.toBase58())
-            getRegisteredDIDsForAccount(wallet.publicKey).then(setRegisteredSolanaDIDs);
+            getRegisteredDIDsForKey(wallet.publicKey).then(setRegisteredSolanaDIDs);
             setSolanaKeyRegistry(Registry.for(wallet as Wallet, connection, cluster));
         } else {
             setRegisteredSolanaDIDs([]);
@@ -61,7 +71,7 @@ export const useRegistry = (): RegistryContext => {
         solanaKeyRegistry,
         ethereumKeyRegistry,
         getRegisteredDIDsForEthAddress,
-        getRegisteredDIDsForAccount,
+        getRegisteredDIDsForKey,
         reload: loadDIDs,
     };
 }

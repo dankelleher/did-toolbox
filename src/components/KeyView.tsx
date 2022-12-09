@@ -11,7 +11,7 @@ import { useMetaWallet } from "../hooks/useMetaWallet";
 const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMethod }) => {
     const { getKeyFlags, registerDIDOnKey, setKeyOwned, did } = useDID();
     const { isConnected } = useMetaWallet();
-    const { getRegisteredDIDsForAccount, getRegisteredDIDsForEthAddress, solanaKeyRegistry, ethereumKeyRegistry } = useRegistry();
+    const { getRegisteredDIDsForKey, getRegisteredDIDsForEthAddress, solanaKeyRegistry, ethereumKeyRegistry } = useRegistry();
     const [ isOwned, setIsOwned ] = useState(false);
     const [ isRegistered, setIsRegistered ] = useState(false);
 
@@ -42,7 +42,7 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
         // Check Key against Registry
         const setRegistryStatus = () => {
             if (verificationMethod.type === VerificationMethodType[VerificationMethodType.Ed25519VerificationKey2018] && verificationMethod.publicKeyBase58) {
-                getRegisteredDIDsForAccount(new PublicKey(verificationMethod.publicKeyBase58))
+                getRegisteredDIDsForKey(new PublicKey(verificationMethod.publicKeyBase58))
                   .then((dids) => {
                       console.log(`Trying to find ${did} in ${dids} (Sol ${verificationMethod.publicKeyBase58})`);
                       return dids.includes(did)
@@ -60,7 +60,7 @@ const KeyEntry:FC<{ verificationMethod: VerificationMethod}> = ({ verificationMe
 
         setOwnershipFlag();
         setRegistryStatus();
-    }, [verificationMethod, getRegisteredDIDsForAccount, getRegisteredDIDsForEthAddress, did, fragment, getKeyFlags]);
+    }, [verificationMethod, getRegisteredDIDsForKey, getRegisteredDIDsForEthAddress, did, fragment, getKeyFlags]);
 
     const claim = useCallback(() => {
         console.log("claiming ownership");

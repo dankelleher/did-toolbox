@@ -1,24 +1,35 @@
 import {createContext, FC, ReactNode, useCallback, useContext, useEffect, useState} from "react";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
 import {
-    addServiceToDID, addVerificationMethodToDID, isMigratable, isInitialized,
-    keyToDid, migrate,
+    addServiceToDID,
+    addVerificationMethodToDID,
+    getDIDAddress,
+    getVerificationMethodFlags,
+    isInitialized,
+    isMigratable,
+    keyToDid,
+    migrate,
+    registerDID,
     removeServiceFromDID,
     removeVerificationMethodFromDID,
-    resolveDID, getDIDAddress, getVerificationMethodFlags, registerDID, setOwned
+    resolveDID,
+    setOwned
 } from "../lib/didUtils";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {DIDDocument} from "did-resolver";
 import {PublicKey} from "@solana/web3.js";
 import {
-    AddVerificationMethodParams, DidSolIdentifier, ExtendedCluster,
+    AddVerificationMethodParams,
+    DidSolIdentifier,
+    ExtendedCluster,
     Service,
-    VerificationMethodFlags, VerificationMethodType
+    VerificationMethodFlags,
+    VerificationMethodType
 } from "@identity.com/sol-did-client";
-import { Web3Provider } from '@ethersproject/providers';
-import { useWeb3React } from "@web3-react/core";
+import {Web3Provider} from '@ethersproject/providers';
+import {useWeb3React} from "@web3-react/core";
 import {useRegistry} from "./useRegistry";
-import { fromSolanaCluster } from "../lib/solanaUtils";
+import {fromSolanaCluster} from "../lib/solanaUtils";
 
 type DIDContextProps = {
     did: string;
@@ -85,7 +96,12 @@ export const DIDProvider: FC<{ children: ReactNode, network: WalletAdapterNetwor
     useEffect(() => {
         const mergedDIDs = [...registeredSolanaDIDs, ...registeredEthereumDIDs];
         // TODO this is a hack - clean up
-        const didsOnNetwork = mergedDIDs.map(did => did.replace("did:sol:", `did:sol:${network}:`));
+        const didsOnNetwork = mergedDIDs.map(
+            did =>
+                network !== WalletAdapterNetwork.Mainnet ?
+                    did.replace("did:sol:", `did:sol:${network}:`) :
+                    did
+        );
         setLinkedDIDs(didsOnNetwork);
     }, [registeredSolanaDIDs, registeredEthereumDIDs]);
 

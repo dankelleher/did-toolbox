@@ -16,6 +16,8 @@ import {DIDDocument, ServiceEndpoint, VerificationMethod as DIDVerificationMetho
 import {Registry} from '@civic/did-registry'
 
 export const registerDID = (wallet: WalletContextState, connection: Connection, did: string): Promise<string> => {
+    console.log("Registering DID " + did);
+    console.log("Wallet public key " + wallet.publicKey?.toBase58());
     const registry = Registry.for(toWallet(wallet), connection);
 
     return registry.register(did);
