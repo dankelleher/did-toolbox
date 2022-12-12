@@ -1752,12 +1752,12 @@
     "@identity.com/sol-did-client" "^3.0.1-beta1"
     "@project-serum/anchor" "^0.25.0"
 
-"@civic/did-registry@^0.0.3-alpha.4":
-  version "0.0.3-alpha.4"
-  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.3-alpha.4.tgz#9bb00237aa590b2d250be9085ece92b09c09cbe4"
-  integrity sha512-JexOHGO/AeNoHEj8X2vOt97CR1AMydd6ArZ2qE8qLV8QARHvj++hhsFBROBTSr90rE6b2jsHnWpfQVlhpEc6Ow==
+"@civic/did-registry@^0.0.6-alpha.2":
+  version "0.0.6-alpha.2"
+  resolved "https://registry.yarnpkg.com/@civic/did-registry/-/did-registry-0.0.6-alpha.2.tgz#6d2ee70a8d784194978c99c3387072f63503be4d"
+  integrity sha512-5s60RIElhcOSjhJxmAs5Squ5aCdMN1XqphT9xs8TTMXgz83E06eEKgm03yTF01Trrq/3P4opUFMdhKJLq/8Wzg==
   dependencies:
-    "@identity.com/sol-did-client" "^3.0.1-beta1"
+    "@identity.com/sol-did-client" "^3.1.4"
     "@project-serum/anchor" "^0.25.0"
 
 "@civic/lexi@0.0.10":
@@ -2718,6 +2718,20 @@
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
     "@identity.com/sol-did-client-legacy" "^2.0.3"
+    "@identity.com/sol-did-idl" "^3.1.0"
+    "@project-serum/anchor" "0.25.0"
+    "@solana/web3.js" "^1.59.1"
+    bs58 "^5.0.0"
+    did-resolver "^3.2.2"
+
+"@identity.com/sol-did-client@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@identity.com/sol-did-client/-/sol-did-client-3.1.4.tgz#8902329ce0aaa09fd18c4d6d4da394a45006ca81"
+  integrity sha512-DRzSi3SlFm71+9MIguHN/1oM459StW1QENHLQaxBF03rKMu1M62IYZEbryjrr9S3WzUkgQXph6G3tPuq/gXGUw==
+  dependencies:
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/bytes" "^5.7.0"
+    "@identity.com/sol-did-client-legacy" "^2.0.4"
     "@identity.com/sol-did-idl" "^3.1.0"
     "@project-serum/anchor" "0.25.0"
     "@solana/web3.js" "^1.59.1"

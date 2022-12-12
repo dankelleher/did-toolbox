@@ -1,7 +1,7 @@
 import {useWeb3React} from "@web3-react/core";
-import {useConnection, useWallet} from "@solana/wallet-adapter-react";
+import {AnchorWallet, useConnection, useWallet} from "@solana/wallet-adapter-react";
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {EthRegistry, ReadOnlyRegistry, Registry, Wallet} from "@civic/did-registry";
+import {EthRegistry, ReadOnlyRegistry, Registry} from "@civic/did-registry";
 import { PublicKey } from "@solana/web3.js";
 import { useDID } from "./useDID";
 import {keyToDid} from "../lib/didUtils";
@@ -47,7 +47,7 @@ export const useRegistry = (): RegistryContext => {
         if (wallet.publicKey) {
             console.log("Found wallet public key " + wallet.publicKey.toBase58())
             getRegisteredDIDsForKey(wallet.publicKey).then(setRegisteredSolanaDIDs);
-            setSolanaKeyRegistry(Registry.for(wallet as Wallet, connection, cluster));
+            setSolanaKeyRegistry(Registry.for(wallet as AnchorWallet, connection, cluster));
         } else {
             setRegisteredSolanaDIDs([]);
         }
@@ -55,15 +55,14 @@ export const useRegistry = (): RegistryContext => {
         if (account) {
             console.log("Found Ethereum account " + account)
             getRegisteredDIDsForEthAddress(account).then(setRegisteredEthereumDIDs);
-            setEthereumKeyRegistry(EthRegistry.forEthAddress(account, wallet as Wallet, connection, cluster));
+            setEthereumKeyRegistry(EthRegistry.forEthAddress(account, wallet as AnchorWallet, connection, cluster));
         } else {
             setRegisteredEthereumDIDs([]);
         }
-    }, [account, wallet, connection, setSolanaKeyRegistry, setEthereumKeyRegistry, setRegisteredSolanaDIDs, setRegisteredEthereumDIDs]);
+    }, [wallet, account, getRegisteredDIDsForKey, connection, cluster, getRegisteredDIDsForEthAddress]);
 
 
-
-    useEffect(loadDIDs, [account, wallet, connection]);
+    useEffect(loadDIDs, [loadDIDs]);
 
     return {
         registeredSolanaDIDs,
